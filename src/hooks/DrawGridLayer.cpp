@@ -28,7 +28,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
     }
 
     void draw() override {
-        std::unordered_map<int, AudioLineGuideGameObject*> audioLineGuides(m_audioLineObjects);
+        std::unordered_map<int, AudioLineGuideGameObject*> audioLineGuides(m_audioLineObjects.begin(), m_audioLineObjects.end());
         m_audioLineObjects.clear();
 
         DrawGridLayer::draw();
@@ -43,7 +43,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         }
 
         if (!SmartBPMTrigger::GAME_MANAGER || audioLineGuides.empty()) {
-            m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides);
+            m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides.begin(), audioLineGuides.end());
             return;
         }
 
@@ -81,7 +81,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         }
 
         if (f->m_bpmPoints.empty() && f->m_bpbPoints.empty()) {
-            m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides);
+            m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides.begin(), audioLineGuides.end());
             return;
         }
 
@@ -99,7 +99,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
             ccDrawLines(f->m_bpbPoints.data(), f->m_bpbPoints.size());
         }
 
-        m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides);
+        m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides.begin(), audioLineGuides.end());
     }
 };
 
