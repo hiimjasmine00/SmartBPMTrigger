@@ -1,0 +1,81 @@
+{
+    "geode": "4.2.0",
+    "gd": {
+        "android": "2.2074",
+        "win": "2.2074",
+        "mac": "2.2074"
+    },
+    "version": "v1.0.0",
+    "id": "hiimjasmine00.smart_bpm_trigger",
+    "name": "Smart BPM Trigger",
+    "developer": "hiimjasmine00",
+    "description": "A mod that improves guidelines in the editor.",
+    "resources": {
+        "sprites": [
+            "resources/*.png"
+        ]
+    },
+    "settings": {
+        "general": {
+            "name": "General",
+            "description": "General settings for the mod.",
+            "type": "title"
+        },
+        "enabled": {
+            "name": "Enabled",
+            "description": "Whether the mod is enabled.",
+            "type": "bool",
+            "default": true
+        },
+        "beats-per-minute": {
+            "name": "Beats Per Minute",
+            "description": "Settings for the beats per minute lines.",
+            "type": "title"
+        },
+        "beats-per-minute-color": {
+            "name": "Color",
+            "description": "The color of the beats per minute lines.",
+            "type": "rgba",
+            "default": "#FFFF00FF"
+        },
+        "beats-per-minute-width": {
+            "name": "Width",
+            "description": "The width of the beats per minute lines.",
+            "type": "float",
+            "min": 0,
+            "max": 2,
+            "default": 1
+        },
+        "beats-per-bar": {
+            "name": "Beats Per Bar",
+            "description": "Settings for the beats per bar lines.",
+            "type": "title"
+        },
+        "beats-per-bar-color": {
+            "name": "Color",
+            "description": "The color of the beats per bar lines.",
+            "type": "rgba",
+            "default": "#FF7F00FF"
+        },
+        "beats-per-bar-width": {
+            "name": "Width",
+            "description": "The width of the beats per bar lines.",
+            "type": "float",
+            "min": 0,
+            "max": 2,
+            "default": 1
+        }
+    },
+    "links": {
+        "community": "https://discord.gg/QVKmbvBXA7",
+        "source": "https://github.com/hiimjasmine00/SmartBPMTrigger",
+        "homepage": "https://www.hiimjustin000.com"
+    },
+    "tags": [
+        "customization",
+        "editor",
+        "enhancement",
+        "offline",
+        "utility"
+    ]
+}
