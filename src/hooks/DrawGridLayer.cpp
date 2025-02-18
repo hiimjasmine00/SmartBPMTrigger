@@ -28,7 +28,8 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
     }
 
     void draw() override {
-        std::unordered_map<int, AudioLineGuideGameObject*> audioLineGuides(m_audioLineObjects.begin(), m_audioLineObjects.end());
+        std::unordered_map<int, AudioLineGuideGameObject*> audioLineGuides;
+        for (auto& [k, v] : m_audioLineObjects) audioLineGuides[k] = v;
         m_audioLineObjects.clear();
 
         DrawGridLayer::draw();
@@ -38,14 +39,16 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         f->m_bpbPoints.clear();
         f->m_guidelines.clear();
 
-        if (m_timeMarkers) for (int i = 0; i < (m_timeMarkers->count() / 2) * 2; i += 2) {
+        if (!SmartBPMTrigger::GAME_MANAGER) {
+            if (!audioLineGuides.empty()) for (auto& [k, v] : audioLineGuides) m_audioLineObjects[k] = v;
+            return;
+        }
+
+        if (SmartBPMTrigger::GAME_MANAGER->m_showSongMarkers && m_timeMarkers) for (int i = 0; i < (m_timeMarkers->count() / 2) * 2; i += 2) {
             f->m_guidelines.push_back(m_timeMarkers->stringAtIndex(i)->floatValue());
         }
 
-        if (!SmartBPMTrigger::GAME_MANAGER || audioLineGuides.empty()) {
-            m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides.begin(), audioLineGuides.end());
-            return;
-        }
+        if (audioLineGuides.empty()) return;
 
         auto origin = m_objectLayer->convertToNodeSpace({ 0.0f, 0.0f });
         auto winSize = CCDirector::get()->getWinSize() / m_objectLayer->getScale();
@@ -81,7 +84,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         }
 
         if (f->m_bpmPoints.empty() && f->m_bpbPoints.empty()) {
-            m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides.begin(), audioLineGuides.end());
+            for (auto& [k, v] : audioLineGuides) m_audioLineObjects[k] = v;
             return;
         }
 
@@ -99,7 +102,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
             ccDrawLines(f->m_bpbPoints.data(), f->m_bpbPoints.size());
         }
 
-        m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides.begin(), audioLineGuides.end());
+        for (auto& [k, v] : audioLineGuides) m_audioLineObjects[k] = v;
     }
 };
 
