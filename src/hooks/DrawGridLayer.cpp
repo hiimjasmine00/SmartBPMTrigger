@@ -43,7 +43,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         }
 
         if (!SmartBPMTrigger::GAME_MANAGER || audioLineGuides.empty()) {
-            m_audioLineObjects = audioLineGuides;
+            m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides);
             return;
         }
 
@@ -81,7 +81,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         }
 
         if (f->m_bpmPoints.empty() && f->m_bpbPoints.empty()) {
-            m_audioLineObjects = audioLineGuides;
+            m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides);
             return;
         }
 
@@ -99,7 +99,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
             ccDrawLines(f->m_bpbPoints.data(), f->m_bpbPoints.size());
         }
 
-        m_audioLineObjects = audioLineGuides;
+        m_audioLineObjects = gd::unordered_map<int, AudioLineGuideGameObject*>(audioLineGuides);
     }
 };
 
