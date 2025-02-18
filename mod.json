@@ -9,7 +9,7 @@
     "id": "hiimjasmine00.smart_bpm_trigger",
     "name": "Smart BPM Trigger",
     "developer": "hiimjasmine00",
-    "description": "A mod that improves guidelines in the editor.",
+    "description": "A mod that improves the BPM trigger in the editor.",
     "resources": {
         "sprites": [
             "resources/*.png"
