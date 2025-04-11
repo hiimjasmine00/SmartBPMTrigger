@@ -42,8 +42,6 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         m_audioLineObjects.clear();
 
         std::vector<std::pair<float, float>> timeMarkers;
-        auto markersBegin = reinterpret_cast<CCString**>(m_timeMarkers->data->arr);
-        auto markersEnd = markersBegin + m_timeMarkers->data->num;
         for (int i = 0; i < m_timeMarkers->count(); i += 2) {
             timeMarkers.push_back({
                 m_timeMarkers->stringAtIndex(i)->floatValue(),
