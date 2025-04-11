@@ -6,24 +6,7 @@
 using namespace geode::prelude;
 
 class $modify(SBTSetupTriggerPopup, SetupTriggerPopup) {
-    static void onModify(ModifyBase<ModifyDerive<SBTSetupTriggerPopup, SetupTriggerPopup>>& self) {
-        (void)self.getHook("SetupTriggerPopup::valueChanged").map([](Hook* hook) {
-            auto mod = Mod::get();
-            hook->setAutoEnable(SmartBPMTrigger::enabled(mod));
-
-            SmartBPMTrigger::settingListener<"enabled", bool>([hook](bool value) {
-                (void)(value ? hook->enable().mapErr([](const std::string& err) {
-                    return log::error("Failed to enable SetupTriggerPopup::valueChanged hook: {}", err), err;
-                }) : hook->disable().mapErr([](const std::string& err) {
-                    return log::error("Failed to disable SetupTriggerPopup::valueChanged hook: {}", err), err;
-                }));
-            }, mod);
-
-            return hook;
-        }).mapErr([](const std::string& err) {
-            return log::error("Failed to get SetupTriggerPopup::valueChanged hook: {}", err), err;
-        });
-    }
+    SBT_MODIFY(SetupTriggerPopup)
 
     void valueChanged(int property, float value) {
         SetupTriggerPopup::valueChanged(property, value);

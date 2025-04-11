@@ -10,6 +10,8 @@
 using namespace geode::prelude;
 
 class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
+    SBT_MODIFY(EditorPauseLayer)
+
     void saveLevel() {
         auto& audioLineObjects = m_editorLayer->m_drawGridLayer->m_audioLineObjects;
         if (audioLineObjects.empty()) return EditorPauseLayer::saveLevel();

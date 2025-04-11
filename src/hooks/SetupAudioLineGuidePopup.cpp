@@ -6,24 +6,7 @@
 using namespace geode::prelude;
 
 class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
-    static void onModify(ModifyBase<ModifyDerive<SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup>>& self) {
-        (void)self.getHook("SetupAudioLineGuidePopup::init").map([](Hook* hook) {
-            auto mod = Mod::get();
-            hook->setAutoEnable(SmartBPMTrigger::enabled(mod));
-
-            SmartBPMTrigger::settingListener<"enabled", bool>([hook](bool value) {
-                (void)(value ? hook->enable().mapErr([](const std::string& err) {
-                    return log::error("Failed to enable SetupAudioLineGuidePopup::init hook: {}", err), err;
-                }) : hook->disable().mapErr([](const std::string& err) {
-                    return log::error("Failed to disable SetupAudioLineGuidePopup::init hook: {}", err), err;
-                }));
-            }, mod);
-
-            return hook;
-        }).mapErr([](const std::string& err) {
-            return log::error("Failed to get SetupAudioLineGuidePopup::init hook: {}", err), err;
-        });
-    }
+    SBT_MODIFY(SetupAudioLineGuidePopup)
 
     bool init(AudioLineGuideGameObject* object, CCArray* objects) {
         if (!SetupAudioLineGuidePopup::init(object, objects)) return false;

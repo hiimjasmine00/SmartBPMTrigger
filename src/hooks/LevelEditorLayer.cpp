@@ -35,6 +35,8 @@ std::string base64URLDecode(const std::string& input) {
 }
 
 class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
+    SBT_MODIFY(LevelEditorLayer)
+
     void createObjectsFromSetup(gd::string& setup) {
         #ifdef GEODE_IS_ANDROID
         std::string stringSetup = setup;

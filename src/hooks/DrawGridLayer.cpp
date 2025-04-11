@@ -17,24 +17,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         std::vector<float> m_bpbGuidelines;
     };
 
-    static void onModify(ModifyBase<ModifyDerive<SBTDrawGridLayer, DrawGridLayer>>& self) {
-        (void)self.getHook("DrawGridLayer::draw").map([](Hook* hook) {
-            auto mod = Mod::get();
-            hook->setAutoEnable(SmartBPMTrigger::enabled(mod));
-
-            SmartBPMTrigger::settingListener<"enabled", bool>([hook](bool value) {
-                (void)(value ? hook->enable().mapErr([](const std::string& err) {
-                    return log::error("Failed to enable DrawGridLayer::draw hook: {}", err), err;
-                }) : hook->disable().mapErr([](const std::string& err) {
-                    return log::error("Failed to disable DrawGridLayer::draw hook: {}", err), err;
-                }));
-            }, mod);
-
-            return hook;
-        }).mapErr([](const std::string& err) {
-            return log::error("Failed to get DrawGridLayer::draw hook: {}", err), err;
-        });
-    }
+    SBT_MODIFY(DrawGridLayer)
 
     void draw() override {
         std::unordered_map<int, AudioLineGuideGameObject*> audioLineGuides;

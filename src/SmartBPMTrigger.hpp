@@ -1,6 +1,24 @@
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/loader/Mod.hpp>
 
+#define SBT_MODIFY(className) \
+    static void onModify(ModifyBase<ModifyDerive<SBT##className, className>>& self) { \
+        auto mod = Mod::get(); \
+        auto enabled = SmartBPMTrigger::enabled(mod); \
+        for (auto& [name, hook] : self.m_hooks) { \
+            hook->setAutoEnable(enabled); \
+        } \
+        SmartBPMTrigger::settingListener<"enabled", bool>([hooks = self.m_hooks](bool value) { \
+            for (auto& [name, hook] : hooks) { \
+                (void)(value ? hook->enable().mapErr([&name](const std::string& err) { \
+                    return log::error("Failed to enable {} hook: {}", name, err), err; \
+                }) : hook->disable().mapErr([&name](const std::string& err) { \
+                    return log::error("Failed to disable {} hook: {}", name, err), err; \
+                })); \
+            } \
+        }, mod); \
+    } \
+
 // Thanks Prevter https://github.com/EclipseMenu/EclipseMenu/blob/v1.1.0/src/modules/config/config.hpp#L135
 template <size_t N>
 struct TemplateString {

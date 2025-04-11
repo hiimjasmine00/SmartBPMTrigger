@@ -14,46 +14,7 @@ class $modify(SBTColorSelectPopup, ColorSelectPopup) {
         Slider* m_widthSlider;
     };
 
-    static void onModify(ModifyBase<ModifyDerive<SBTColorSelectPopup, ColorSelectPopup>>& self) {
-        auto mod = Mod::get();
-        auto enabled = SmartBPMTrigger::enabled(mod);
-
-        auto closeColorSelectHook = self.getHook("ColorSelectPopup::closeColorSelect").map([enabled](Hook* hook) {
-            return hook->setAutoEnable(enabled), hook;
-        }).mapErr([](const std::string& err) {
-            return log::error("Failed to get ColorSelectPopup::closeColorSelect hook: {}", err), err;
-        }).unwrapOr(nullptr);
-
-        auto initHook = self.getHook("ColorSelectPopup::init").map([enabled](Hook* hook) {
-            return hook->setAutoEnable(enabled), hook;
-        }).mapErr([](const std::string& err) {
-            return log::error("Failed to get ColorSelectPopup::init hook: {}", err), err;
-        }).unwrapOr(nullptr);
-
-        auto textChangedHook = self.getHook("ColorSelectPopup::textChanged").map([enabled](Hook* hook) {
-            return hook->setAutoEnable(enabled), hook;
-        }).mapErr([](const std::string& err) {
-            return log::error("Failed to get ColorSelectPopup::textChanged hook: {}", err), err;
-        }).unwrapOr(nullptr);
-
-        SmartBPMTrigger::settingListener<"enabled", bool>([closeColorSelectHook, initHook, textChangedHook](bool value) {
-            if (closeColorSelectHook) (void)(value ? closeColorSelectHook->enable().mapErr([](const std::string& err) {
-                return log::error("Failed to enable ColorSelectPopup::closeColorSelect hook: {}", err), err;
-            }) : closeColorSelectHook->disable().mapErr([](const std::string& err) {
-                return log::error("Failed to disable ColorSelectPopup::closeColorSelect hook: {}", err), err;
-            }));
-            if (initHook) (void)(value ? initHook->enable().mapErr([](const std::string& err) {
-                return log::error("Failed to enable ColorSelectPopup::init hook: {}", err), err;
-            }) : initHook->disable().mapErr([](const std::string& err) {
-                return log::error("Failed to disable ColorSelectPopup::init hook: {}", err), err;
-            }));
-            if (textChangedHook) (void)(value ? textChangedHook->enable().mapErr([](const std::string& err) {
-                return log::error("Failed to enable ColorSelectPopup::textChanged hook: {}", err), err;
-            }) : textChangedHook->disable().mapErr([](const std::string& err) {
-                return log::error("Failed to disable ColorSelectPopup::textChanged hook: {}", err), err;
-            }));
-        }, mod);
-    }
+    SBT_MODIFY(ColorSelectPopup)
 
     bool init(EffectGameObject* object, CCArray* objects, ColorAction* action) {
         if (!ColorSelectPopup::init(object, objects, action)) return false;
