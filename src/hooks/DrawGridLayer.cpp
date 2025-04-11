@@ -24,13 +24,8 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         for (auto& [k, v] : m_audioLineObjects) audioLineGuides[k] = v;
         m_audioLineObjects.clear();
 
-        std::vector<std::pair<float, float>> timeMarkers;
-        for (int i = 0; i < m_timeMarkers->count(); i += 2) {
-            timeMarkers.push_back({
-                m_timeMarkers->stringAtIndex(i)->floatValue(),
-                m_timeMarkers->stringAtIndex(i + 1)->floatValue()
-            });
-        }
+        auto timeMarkers = CCArray::create();
+        timeMarkers->addObjectsFromArray(m_timeMarkers);
         m_timeMarkers->removeAllObjects();
 
         DrawGridLayer::draw();
@@ -74,7 +69,10 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
 
         if (SmartBPMTrigger::gameManager && SmartBPMTrigger::gameManager->m_showSongMarkers) {
             auto mod = Mod::get();
-            for (auto& [pos, type] : timeMarkers) {
+            for (int i = 0; i < timeMarkers->count(); i += 2) {
+                auto type = timeMarkers->stringAtIndex(i)->floatValue();
+                auto pos = timeMarkers->stringAtIndex(i + 1)->floatValue();
+
                 if (type == 0.8f) f->m_orangeGuidelines.push_back(pos);
                 else if (type == 0.9f) f->m_yellowGuidelines.push_back(pos);
                 else if (type == 1.0f) f->m_greenGuidelines.push_back(pos);
@@ -102,10 +100,8 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
             }
         }
 
-        for (auto& [pos, type] : timeMarkers) {
-            m_timeMarkers->addObject(CCString::create(fmt::format("{:.2f}", pos)));
-            m_timeMarkers->addObject(CCString::create(fmt::format("{:.2f}", type)));
-        }
+        m_timeMarkers->addObjectsFromArray(timeMarkers);
+        timeMarkers->release();
     }
 };
 
