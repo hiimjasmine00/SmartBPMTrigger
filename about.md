@@ -4,7 +4,7 @@ A mod that improves the BPM trigger in the editor.
 ## Features
 - Synchronized BPM triggers with level speed changes
 - Color, opacity, and width customization for beats per minute and beats per bar lines in BPM triggers
-- Fixed a bug where BPM triggers deleted with "Undo" and "Redo" would not have their guidelines removed 
+- Fixed a bug where BPM triggers deleted with "Undo" and "Redo" would not have their guidelines removed
 - Snap object(s) to guideline button in the "Edit" menu (BPM trigger guidelines, manual guidelines, and official song guidelines)
 
 ## Credits

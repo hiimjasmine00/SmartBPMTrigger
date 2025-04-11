@@ -1,11 +1,12 @@
 {
-    "geode": "4.2.0",
+    "geode": "4.3.1",
     "gd": {
         "android": "2.2074",
         "win": "2.2074",
-        "mac": "2.2074"
+        "mac": "2.2074",
+        "ios": "2.2074"
     },
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "id": "hiimjasmine00.smart_bpm_trigger",
     "name": "Smart BPM Trigger",
     "developer": "hiimjasmine00",
@@ -27,49 +28,106 @@
             "type": "bool",
             "default": true
         },
+        "orange": {
+            "name": "Orange Guidelines",
+            "description": "Settings for the orange guidelines.",
+            "type": "title"
+        },
+        "orange-color": {
+            "name": "Color",
+            "description": "The color of the orange guidelines.",
+            "type": "rgba",
+            "default": "#FF7F00FF"
+        },
+        "orange-width": {
+            "name": "Width",
+            "description": "The width of the orange guidelines.",
+            "type": "float",
+            "min": 0,
+            "max": 5,
+            "default": 1
+        },
+        "yellow": {
+            "name": "Yellow Guidelines",
+            "description": "Settings for the yellow guidelines.",
+            "type": "title"
+        },
+        "yellow-color": {
+            "name": "Color",
+            "description": "The color of the yellow guidelines.",
+            "type": "rgba",
+            "default": "#FFFF00FF"
+        },
+        "yellow-width": {
+            "name": "Width",
+            "description": "The width of the yellow guidelines.",
+            "type": "float",
+            "min": 0,
+            "max": 5,
+            "default": 1
+        },
+        "green": {
+            "name": "Green Guidelines",
+            "description": "Settings for the green guidelines.",
+            "type": "title"
+        },
+        "green-color": {
+            "name": "Color",
+            "description": "The color of the green guidelines.",
+            "type": "rgba",
+            "default": "#7FFF00FF"
+        },
+        "green-width": {
+            "name": "Width",
+            "description": "The width of the green guidelines.",
+            "type": "float",
+            "min": 0,
+            "max": 5,
+            "default": 1
+        },
         "beats-per-minute": {
-            "name": "Beats Per Minute",
-            "description": "Settings for the beats per minute lines.",
+            "name": "BPM Guideines",
+            "description": "Settings for the beats per minute guidelines.",
             "type": "title"
         },
         "beats-per-minute-color": {
             "name": "Color",
-            "description": "The color of the beats per minute lines.",
+            "description": "The color of the beats per minute guidelines.",
             "type": "rgba",
             "default": "#FFFF00FF"
         },
         "beats-per-minute-width": {
             "name": "Width",
-            "description": "The width of the beats per minute lines.",
+            "description": "The width of the beats per minute guidelines.",
             "type": "float",
             "min": 0,
-            "max": 2,
+            "max": 5,
             "default": 1
         },
         "beats-per-bar": {
-            "name": "Beats Per Bar",
-            "description": "Settings for the beats per bar lines.",
+            "name": "BPB Guideines",
+            "description": "Settings for the beats per bar guidelines.",
             "type": "title"
         },
         "beats-per-bar-color": {
             "name": "Color",
-            "description": "The color of the beats per bar lines.",
+            "description": "The color of the beats per bar guidelines.",
             "type": "rgba",
             "default": "#FF7F00FF"
         },
         "beats-per-bar-width": {
             "name": "Width",
-            "description": "The width of the beats per bar lines.",
+            "description": "The width of the beats per bar guidelines.",
             "type": "float",
             "min": 0,
-            "max": 2,
+            "max": 5,
             "default": 1
         }
     },
     "links": {
         "community": "https://discord.gg/QVKmbvBXA7",
         "source": "https://github.com/hiimjasmine00/SmartBPMTrigger",
-        "homepage": "https://www.hiimjustin000.com"
+        "homepage": "https://www.hiimjasmine00.com"
     },
     "tags": [
         "customization",
