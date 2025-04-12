@@ -6,6 +6,7 @@ A mod that improves the BPM trigger in the editor.
 - Color, opacity, and width customization for beats per minute and beats per bar lines in BPM triggers
 - Fixed a bug where BPM triggers deleted with "Undo" and "Redo" would not have their guidelines removed
 - Snap object(s) to guideline button in the "Edit" menu (BPM trigger guidelines, manual guidelines, and official song guidelines)
+- BPM spawn loop creator to spawn triggers in a rate of beats per minute
 
 ## Credits
 - [IOMAN](https://gdbrowser.com/u/8265048) - Original idea for the mod

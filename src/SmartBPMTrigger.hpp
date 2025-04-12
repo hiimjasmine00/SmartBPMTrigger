@@ -42,15 +42,34 @@ struct VariableString : public TemplateString<N + 3> {
     }
 };
 
+enum class GuidelineType {
+    None = 0,
+    Orange = 1,
+    Yellow = 2,
+    Green = 4,
+    BPM = 8,
+    BPB = 16
+};
+
+inline GuidelineType operator|(GuidelineType lhs, GuidelineType rhs) {
+    return (GuidelineType)((int)lhs | (int)rhs);
+}
+
+inline GuidelineType& operator|=(GuidelineType& lhs, GuidelineType rhs) {
+    return lhs = (GuidelineType)((int)lhs | (int)rhs);
+}
+
+inline GuidelineType operator&(GuidelineType lhs, GuidelineType rhs) {
+    return (GuidelineType)((int)lhs & (int)rhs);
+}
+
 class SmartBPMTrigger {
 private:
     template <class T>
     static T getInternal(geode::Mod* mod, std::string_view key) {
         using SettingType = typename geode::SettingTypeForValueType<T>::SettingType;
-        if (std::shared_ptr<SettingType> setting = std::static_pointer_cast<SettingType>(mod->getSetting(key))) {
-            return setting->getValue();
-        }
-        return T();
+        if (std::shared_ptr<SettingType> setting = std::static_pointer_cast<SettingType>(mod->getSetting(key))) return setting->getValue();
+        else return T();
     }
 public:
     inline static GameManager* gameManager = nullptr;
@@ -71,6 +90,12 @@ public:
         return value;
     }
 
+    template <TemplateString key, class T>
+    static void set(T value, geode::Mod* mod = geode::Mod::get()) {
+        using SettingType = typename geode::SettingTypeForValueType<T>::SettingType;
+        if (std::shared_ptr<SettingType> setting = std::static_pointer_cast<SettingType>(mod->getSetting(key))) setting->setValue(value);
+    }
+
     template <VariableString key, class T>
     static T variable() {
         if (!gameManager) return T();
@@ -81,21 +106,14 @@ public:
     }
 
     static bool enabled(geode::Mod* mod = geode::Mod::get());
-    static cocos2d::ccColor4B orangeColor(geode::Mod* mod = geode::Mod::get());
-    static float orangeWidth(geode::Mod* mod = geode::Mod::get());
-    static cocos2d::ccColor4B yellowColor(geode::Mod* mod = geode::Mod::get());
-    static float yellowWidth(geode::Mod* mod = geode::Mod::get());
-    static cocos2d::ccColor4B greenColor(geode::Mod* mod = geode::Mod::get());
-    static float greenWidth(geode::Mod* mod = geode::Mod::get());
-    static cocos2d::ccColor4B bpmColor(geode::Mod* mod = geode::Mod::get());
-    static float bpmWidth(geode::Mod* mod = geode::Mod::get());
-    static cocos2d::ccColor4B bpbColor(geode::Mod* mod = geode::Mod::get());
-    static float bpbWidth(geode::Mod* mod = geode::Mod::get());
-    static std::vector<float> getGuidelines(DrawGridLayer* layer);
-    static std::vector<float>& getOrangeGuidelines(DrawGridLayer* layer);
-    static std::vector<float>& getYellowGuidelines(DrawGridLayer* layer);
-    static std::vector<float>& getGreenGuidelines(DrawGridLayer* layer);
-    static std::vector<float>& getBPMGuidelines(DrawGridLayer* layer);
-    static std::vector<float>& getBPBGuidelines(DrawGridLayer* layer);
+    static cocos2d::ccColor4B getColor(GuidelineType type, geode::Mod* mod = geode::Mod::get());
+    static float getWidth(GuidelineType type, geode::Mod* mod = geode::Mod::get());
+    static bool getSnap(GuidelineType type, geode::Mod* mod = geode::Mod::get());
+    static void setSnap(GuidelineType type, bool value, geode::Mod* mod = geode::Mod::get());
+    static bool snapDistribute(geode::Mod* mod = geode::Mod::get());
+    static void setSnapDistribute(bool value, geode::Mod* mod = geode::Mod::get());
+    static int spawnBPM(geode::Mod* mod = geode::Mod::get());
+    static void setSpawnBPM(int value, geode::Mod* mod = geode::Mod::get());
+    static std::vector<float> getGuidelines(DrawGridLayer* layer, GuidelineType type);
     static ColorSelectPopup* createColorPopup(const cocos2d::ccColor4B&, float, int, ColorSelectDelegate*);
 };

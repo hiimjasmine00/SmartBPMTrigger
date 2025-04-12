@@ -28,16 +28,16 @@ class $modify(SBTSetupTriggerPopup, SetupTriggerPopup) {
         auto mod = Mod::get();
         auto& colors = data->m_colors;
         if (colors.size() < beats) {
-            auto bpmColor = SmartBPMTrigger::bpmColor(mod);
-            auto bpbColor = SmartBPMTrigger::bpbColor(mod);
+            auto bpmColor = SmartBPMTrigger::getColor(GuidelineType::BPM, mod);
+            auto bpbColor = SmartBPMTrigger::getColor(GuidelineType::BPB, mod);
             for (int i = colors.size(); i < beats; i++) {
                 colors.push_back(i == 0 ? bpmColor : bpbColor);
             }
         }
         auto& widths = data->m_widths;
         if (widths.size() < beats) {
-            auto bpmWidth = SmartBPMTrigger::bpmWidth(mod);
-            auto bpbWidth = SmartBPMTrigger::bpbWidth(mod);
+            auto bpmWidth = SmartBPMTrigger::getWidth(GuidelineType::BPM, mod);
+            auto bpbWidth = SmartBPMTrigger::getWidth(GuidelineType::BPB, mod);
             for (int i = widths.size(); i < beats; i++) {
                 widths.push_back(i == 0 ? bpmWidth : bpbWidth);
             }

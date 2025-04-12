@@ -38,16 +38,16 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
     auto mod = Mod::get();
 
     if (ret->m_colors.size() < beats) {
-        auto bpmColor = SmartBPMTrigger::bpmColor(mod);
-        auto bpbColor = SmartBPMTrigger::bpbColor(mod);
+        auto bpmColor = SmartBPMTrigger::getColor(GuidelineType::BPM, mod);
+        auto bpbColor = SmartBPMTrigger::getColor(GuidelineType::BPB, mod);
         for (int i = ret->m_colors.size(); i < beats; i++) {
             ret->m_colors.push_back(i == 0 ? bpmColor : bpbColor);
         }
     }
 
     if (ret->m_widths.size() < beats) {
-        auto bpmWidth = SmartBPMTrigger::bpmWidth(mod);
-        auto bpbWidth = SmartBPMTrigger::bpbWidth(mod);
+        auto bpmWidth = SmartBPMTrigger::getWidth(GuidelineType::BPM, mod);
+        auto bpbWidth = SmartBPMTrigger::getWidth(GuidelineType::BPB, mod);
         for (int i = ret->m_widths.size(); i < beats; i++) {
             ret->m_widths.push_back(i == 0 ? bpmWidth : bpbWidth);
         }

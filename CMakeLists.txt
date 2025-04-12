@@ -13,6 +13,7 @@ project(SmartBPMTrigger VERSION 1.1.0)
 
 add_library(${PROJECT_NAME} SHARED
     src/classes/SBTOptionsPopup.cpp
+    src/classes/SBTSettingsPopup.cpp
     src/classes/SBTTriggerData.cpp
     src/hooks/ColorSelectPopup.cpp
     src/hooks/DrawGridLayer.cpp

@@ -10,58 +10,62 @@ bool SmartBPMTrigger::enabled(Mod* mod) {
     return get<"enabled", bool>(mod);
 }
 
-ccColor4B SmartBPMTrigger::orangeColor(Mod* mod) {
-    return get<"orange-color", ccColor4B>(mod);
+ccColor4B SmartBPMTrigger::getColor(GuidelineType type, Mod* mod) {
+    switch (type) {
+        case GuidelineType::Orange: return get<"orange-color", ccColor4B>(mod);
+        case GuidelineType::Yellow: return get<"yellow-color", ccColor4B>(mod);
+        case GuidelineType::Green: return get<"green-color", ccColor4B>(mod);
+        case GuidelineType::BPM: return get<"beats-per-minute-color", ccColor4B>(mod);
+        case GuidelineType::BPB: return get<"beats-per-bar-color", ccColor4B>(mod);
+        default: return { 0, 0, 0, 0 };
+    }
 }
 
-float SmartBPMTrigger::orangeWidth(Mod* mod) {
-    return get<"orange-width", float>(mod);
+float SmartBPMTrigger::getWidth(GuidelineType type, Mod* mod) {
+    switch (type) {
+        case GuidelineType::Orange: return get<"orange-width", float>(mod);
+        case GuidelineType::Yellow: return get<"yellow-width", float>(mod);
+        case GuidelineType::Green: return get<"green-width", float>(mod);
+        case GuidelineType::BPM: return get<"beats-per-minute-width", float>(mod);
+        case GuidelineType::BPB: return get<"beats-per-bar-width", float>(mod);
+        default: return 0.0f;
+    }
 }
 
-ccColor4B SmartBPMTrigger::yellowColor(Mod* mod) {
-    return get<"yellow-color", ccColor4B>(mod);
+bool SmartBPMTrigger::getSnap(GuidelineType type, Mod* mod) {
+    switch (type) {
+        case GuidelineType::Orange: return get<"snap-orange", bool>(mod);
+        case GuidelineType::Yellow: return get<"snap-yellow", bool>(mod);
+        case GuidelineType::Green: return get<"snap-green", bool>(mod);
+        case GuidelineType::BPM: return get<"snap-bpm", bool>(mod);
+        case GuidelineType::BPB: return get<"snap-bpb", bool>(mod);
+        default: return false;
+    }
 }
 
-float SmartBPMTrigger::yellowWidth(Mod* mod) {
-    return get<"yellow-width", float>(mod);
+void SmartBPMTrigger::setSnap(GuidelineType type, bool value, Mod* mod) {
+    switch (type) {
+        case GuidelineType::Orange: set<"snap-orange", bool>(value, mod); break;
+        case GuidelineType::Yellow: set<"snap-yellow", bool>(value, mod); break;
+        case GuidelineType::Green: set<"snap-green", bool>(value, mod); break;
+        case GuidelineType::BPM: set<"snap-bpm", bool>(value, mod); break;
+        case GuidelineType::BPB: set<"snap-bpb", bool>(value, mod); break;
+        default: break;
+    }
 }
 
-ccColor4B SmartBPMTrigger::greenColor(Mod* mod) {
-    return get<"green-color", ccColor4B>(mod);
+bool SmartBPMTrigger::snapDistribute(Mod* mod) {
+    return get<"snap-distribute", bool>(mod);
 }
 
-float SmartBPMTrigger::greenWidth(Mod* mod) {
-    return get<"green-width", float>(mod);
+void SmartBPMTrigger::setSnapDistribute(bool value, Mod* mod) {
+    set<"snap-distribute", bool>(value, mod);
 }
 
-ccColor4B SmartBPMTrigger::bpmColor(Mod* mod) {
-    return get<"beats-per-minute-color", ccColor4B>(mod);
+int SmartBPMTrigger::spawnBPM(Mod* mod) {
+    return get<"spawn-bpm", int>(mod);
 }
 
-float SmartBPMTrigger::bpmWidth(Mod* mod) {
-    return get<"beats-per-minute-width", float>(mod);
-}
-
-ccColor4B SmartBPMTrigger::bpbColor(Mod* mod) {
-    return get<"beats-per-bar-color", ccColor4B>(mod);
-}
-
-float SmartBPMTrigger::bpbWidth(Mod* mod) {
-    return get<"beats-per-bar-width", float>(mod);
-}
-
-std::vector<float> SmartBPMTrigger::getGuidelines(DrawGridLayer* layer) {
-    std::vector<float> guidelines;
-    auto orangeGuidelines = getOrangeGuidelines(layer);
-    auto yellowGuidelines = getYellowGuidelines(layer);
-    auto greenGuidelines = getGreenGuidelines(layer);
-    auto bpmGuidelines = getBPMGuidelines(layer);
-    auto bpbGuidelines = getBPBGuidelines(layer);
-    guidelines.insert(guidelines.end(), orangeGuidelines.begin(), orangeGuidelines.end());
-    guidelines.insert(guidelines.end(), yellowGuidelines.begin(), yellowGuidelines.end());
-    guidelines.insert(guidelines.end(), greenGuidelines.begin(), greenGuidelines.end());
-    guidelines.insert(guidelines.end(), bpmGuidelines.begin(), bpmGuidelines.end());
-    guidelines.insert(guidelines.end(), bpbGuidelines.begin(), bpbGuidelines.end());
-    std::ranges::sort(guidelines);
-    return guidelines;
+void SmartBPMTrigger::setSpawnBPM(int value, Mod* mod) {
+    set<"spawn-bpm", int>(value, mod);
 }

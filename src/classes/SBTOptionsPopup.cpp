@@ -49,12 +49,11 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
         m_buttonMenu->addChild(channelButton);
     }
 
-    auto saveButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Save", 0, 0, 0.8f, false, "goldFont.fnt", "GJ_button_01.png", 0.0f),
-        [this, triggerData](auto) {
-            triggerData->m_colors = m_colors;
-            triggerData->m_widths = m_widths;
-            onClose(nullptr);
-        });
+    auto saveButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Save", 0.8f), [this, triggerData](auto) {
+        triggerData->m_colors = m_colors;
+        triggerData->m_widths = m_widths;
+        onClose(nullptr);
+    });
     saveButton->setPosition({ 125.0f, 25.0f });
     saveButton->setID("save-button");
     m_buttonMenu->addChild(saveButton);

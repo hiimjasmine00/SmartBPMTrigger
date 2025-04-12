@@ -10,7 +10,7 @@
     "id": "hiimjasmine00.smart_bpm_trigger",
     "name": "Smart BPM Trigger",
     "developer": "hiimjasmine00",
-    "description": "A mod that improves the BPM trigger in the editor.",
+    "description": "A mod that improves guidelines in the editor.",
     "resources": {
         "sprites": [
             "resources/*.png"
@@ -37,12 +37,14 @@
             "name": "Color",
             "description": "The color of the orange guidelines.",
             "type": "rgba",
+            "enable-if": "enabled",
             "default": "#FF7F00FF"
         },
         "orange-width": {
             "name": "Width",
             "description": "The width of the orange guidelines.",
             "type": "float",
+            "enable-if": "enabled",
             "min": 0,
             "max": 5,
             "default": 1
@@ -56,12 +58,14 @@
             "name": "Color",
             "description": "The color of the yellow guidelines.",
             "type": "rgba",
+            "enable-if": "enabled",
             "default": "#FFFF00FF"
         },
         "yellow-width": {
             "name": "Width",
             "description": "The width of the yellow guidelines.",
             "type": "float",
+            "enable-if": "enabled",
             "min": 0,
             "max": 5,
             "default": 1
@@ -75,12 +79,14 @@
             "name": "Color",
             "description": "The color of the green guidelines.",
             "type": "rgba",
+            "enable-if": "enabled",
             "default": "#7FFF00FF"
         },
         "green-width": {
             "name": "Width",
             "description": "The width of the green guidelines.",
             "type": "float",
+            "enable-if": "enabled",
             "min": 0,
             "max": 5,
             "default": 1
@@ -94,12 +100,14 @@
             "name": "Color",
             "description": "The color of the beats per minute guidelines.",
             "type": "rgba",
+            "enable-if": "enabled",
             "default": "#FFFF00FF"
         },
         "beats-per-minute-width": {
             "name": "Width",
             "description": "The width of the beats per minute guidelines.",
             "type": "float",
+            "enable-if": "enabled",
             "min": 0,
             "max": 5,
             "default": 1
@@ -113,15 +121,78 @@
             "name": "Color",
             "description": "The color of the beats per bar guidelines.",
             "type": "rgba",
+            "enable-if": "enabled",
             "default": "#FF7F00FF"
         },
         "beats-per-bar-width": {
             "name": "Width",
             "description": "The width of the beats per bar guidelines.",
             "type": "float",
+            "enable-if": "enabled",
             "min": 0,
             "max": 5,
             "default": 1
+        },
+        "snap": {
+            "name": "Guideline Snap",
+            "description": "Settings for the guideline snap.",
+            "type": "title"
+        },
+        "snap-distribute": {
+            "name": "Distribute",
+            "description": "Whether to distribute the objects to the guidelines.",
+            "type": "bool",
+            "enable-if": "enabled",
+            "default": false
+        },
+        "snap-orange": {
+            "name": "Orange",
+            "description": "Whether to include the orange guidelines in the snap.",
+            "type": "bool",
+            "enable-if": "enabled",
+            "default": true
+        },
+        "snap-yellow": {
+            "name": "Yellow",
+            "description": "Whether to include the yellow guidelines in the snap.",
+            "type": "bool",
+            "enable-if": "enabled",
+            "default": true
+        },
+        "snap-green": {
+            "name": "Green",
+            "description": "Whether to include the green guidelines in the snap.",
+            "type": "bool",
+            "enable-if": "enabled",
+            "default": true
+        },
+        "snap-bpm": {
+            "name": "BPM Guidelines",
+            "description": "Whether to include the beats per minute guidelines in the snap.",
+            "type": "bool",
+            "enable-if": "enabled",
+            "default": true
+        },
+        "snap-bpb": {
+            "name": "BPB Guidelines",
+            "description": "Whether to include the beats per bar guidelines in the snap.",
+            "type": "bool",
+            "enable-if": "enabled",
+            "default": true
+        },
+        "spawn": {
+            "name": "BPM Spawn Loop",
+            "description": "Settings for the BPM spawn loop creator.",
+            "type": "title"
+        },
+        "spawn-bpm": {
+            "name": "BPM",
+            "description": "The BPM of the spawn loop.",
+            "type": "int",
+            "enable-if": "enabled",
+            "min": 1,
+            "max": 999,
+            "default": 120
         }
     },
     "links": {
