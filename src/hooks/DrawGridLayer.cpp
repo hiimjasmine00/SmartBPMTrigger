@@ -25,8 +25,10 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         m_audioLineObjects.clear();
 
         auto timeMarkers = CCArray::create();
-        timeMarkers->addObjectsFromArray(m_timeMarkers);
-        m_timeMarkers->removeAllObjects();
+        if (m_timeMarkers) {
+            timeMarkers->addObjectsFromArray(m_timeMarkers);
+            m_timeMarkers->removeAllObjects();
+        }
 
         DrawGridLayer::draw();
 
@@ -70,15 +72,15 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
 
         for (auto& [k, v] : audioLineGuides) m_audioLineObjects[k] = v;
 
-        if (SmartBPMTrigger::gameManager && SmartBPMTrigger::gameManager->m_showSongMarkers) {
+        if (SmartBPMTrigger::gameManager && SmartBPMTrigger::gameManager->m_showSongMarkers && timeMarkers->count() > 0) {
             auto mod = Mod::get();
             for (int i = 0; i < timeMarkers->count(); i += 2) {
                 auto pos = timeMarkers->stringAtIndex(i)->floatValue();
                 auto type = timeMarkers->stringAtIndex(i + 1)->floatValue();
 
-                if (type == 0.8f) f->m_orangeGuidelines.push_back(pos);
-                else if (type == 0.9f) f->m_yellowGuidelines.push_back(pos);
+                if (type == 0.9f) f->m_yellowGuidelines.push_back(pos);
                 else if (type == 1.0f) f->m_greenGuidelines.push_back(pos);
+                else f->m_orangeGuidelines.push_back(pos);
             }
 
             if (!f->m_orangeGuidelines.empty()) {
@@ -112,7 +114,7 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
             }
         }
 
-        m_timeMarkers->addObjectsFromArray(timeMarkers);
+        if (m_timeMarkers) m_timeMarkers->addObjectsFromArray(timeMarkers);
         timeMarkers->release();
     }
 };
