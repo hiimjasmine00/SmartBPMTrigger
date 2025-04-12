@@ -84,7 +84,8 @@ class $modify(SBTColorSelectPopup, ColorSelectPopup) {
     void textChanged(CCTextInputNode* input) {
         ColorSelectPopup::textChanged(input);
 
-        if (m_disableTextDelegate || input != m_fields->m_widthInput) return;
+        auto f = m_fields.self();
+        if (m_disableTextDelegate || input != f->m_widthInput || !f->m_customSelect) return;
 
         auto width = std::clamp(numFromString<float>(input->getString()).unwrapOr(0.0f), 0.0f, 5.0f);
         m_colorAction->m_toOpacity = width;
@@ -93,6 +94,8 @@ class $modify(SBTColorSelectPopup, ColorSelectPopup) {
 
     void closeColorSelect(CCObject* sender) {
         auto f = m_fields.self();
+        if (!f->m_customSelect) return;
+
         f->m_widthInput->onClickTrackNode(false);
         f->m_widthInput->setDelegate(nullptr);
 
