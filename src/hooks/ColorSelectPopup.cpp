@@ -94,11 +94,10 @@ class $modify(SBTColorSelectPopup, ColorSelectPopup) {
 
     void closeColorSelect(CCObject* sender) {
         auto f = m_fields.self();
-        if (!f->m_customSelect) return;
-
-        f->m_widthInput->onClickTrackNode(false);
-        f->m_widthInput->setDelegate(nullptr);
-
+        if (f->m_customSelect) {
+            f->m_widthInput->onClickTrackNode(false);
+            f->m_widthInput->setDelegate(nullptr);
+        }
         ColorSelectPopup::closeColorSelect(sender);
     }
 
