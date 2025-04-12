@@ -85,11 +85,11 @@ class $modify(SBTColorSelectPopup, ColorSelectPopup) {
         ColorSelectPopup::textChanged(input);
 
         auto f = m_fields.self();
-        if (m_disableTextDelegate || input != f->m_widthInput || !f->m_customSelect) return;
+        if (m_disableTextDelegate || input != f->m_widthInput) return;
 
         auto width = std::clamp(numFromString<float>(input->getString()).unwrapOr(0.0f), 0.0f, 5.0f);
         m_colorAction->m_toOpacity = width;
-        m_fields->m_widthSlider->m_touchLogic->m_thumb->setValue(width / 5.0f);
+        f->m_widthSlider->m_touchLogic->m_thumb->setValue(width / 5.0f);
     }
 
     void closeColorSelect(CCObject* sender) {
