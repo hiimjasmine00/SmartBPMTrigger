@@ -355,7 +355,7 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
 
     auto groupID = layer->getNextFreeGroupID(nullptr);
     auto firstID = groupID;
-    auto mainTrigger = static_cast<SpawnTriggerGameObject*>(ui->createObject(1268, { x, y + 90.0f }));
+    auto mainTrigger = static_cast<EffectGameObject*>(ui->createObject(1268, { x, y + 90.0f }));
     mainTrigger->m_targetGroupID = std::clamp(groupID, 0, 9999);
     layer->removeSpecial(mainTrigger);
     layer->addSpecial(mainTrigger);
@@ -376,7 +376,7 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
         }
         groupID = oldID;
         for (int j = 0; j < innerArray->count(); j++) {
-            auto object = static_cast<EffectGameObject*>(innerArray->objectAtIndex(j));
+            auto object = static_cast<GameObject*>(innerArray->objectAtIndex(j));
             if (object->addToGroup(oldID) == 1) layer->addToGroup(object, oldID, false);
             if (j == 0) {
                 delay = diff;

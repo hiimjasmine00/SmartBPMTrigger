@@ -35,7 +35,7 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
                 enabled = !triggerData->m_disabled;
         }
         else if (objects) {
-            for (auto object : CCArrayExt<GameObject*>(objects)) {
+            for (auto object : CCArrayExt<CCNode*>(objects)) {
                 auto triggerData = static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr));
                 if (triggerData && triggerData->m_disabled) {
                     enabled = false;
@@ -63,7 +63,7 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
                 triggerData->m_disabled = !enabled;
         }
         else if (m_gameObjects) {
-            for (auto object : CCArrayExt<GameObject*>(m_gameObjects)) {
+            for (auto object : CCArrayExt<CCNode*>(m_gameObjects)) {
                 if (auto triggerData = static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr)))
                     triggerData->m_disabled = !enabled;
             }
