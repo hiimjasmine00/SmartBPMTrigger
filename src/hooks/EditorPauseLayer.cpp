@@ -37,7 +37,8 @@ class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
         std::string saveString;
         for (auto& k : keys) {
             if (!saveString.empty()) saveString += ';';
-            saveString += static_cast<SBTTriggerData*>(audioLineObjects[k]->getUserObject("trigger-data"_spr))->getSaveString();
+            if (auto triggerData = static_cast<SBTTriggerData*>(audioLineObjects[k]->getUserObject("trigger-data"_spr)))
+                saveString += triggerData->getSaveString();
         }
         saveObject->m_text = saveString;
 

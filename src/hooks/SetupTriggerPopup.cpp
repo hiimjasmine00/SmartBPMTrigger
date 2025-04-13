@@ -16,7 +16,7 @@ class $modify(SBTSetupTriggerPopup, SetupTriggerPopup) {
         if (m_gameObject && m_gameObject->m_objectID == 3642)
             updateBeats(static_cast<SBTTriggerData*>(m_gameObject->getUserObject("trigger-data"_spr)), value);
         else if (m_gameObjects) {
-            for (auto object : CCArrayExt<EffectGameObject*>(m_gameObjects)) {
+            for (auto object : CCArrayExt<GameObject*>(m_gameObjects)) {
                 if (object->m_objectID == 3642) updateBeats(static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr)), value);
             }
         }

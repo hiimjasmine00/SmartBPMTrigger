@@ -1,4 +1,9 @@
 # Smart BPM Trigger Changelog
+## v1.1.2 (2025-04-13)
+- Allowed changing of existing BPM trigger colors via default settings, as long as they were not manually set
+- Added an option in the BPM trigger settings to turn off smart guidelines
+- Added arrows to the BPM spawn loop creator to increase/decrease the BPM
+
 ## v1.1.1 (2025-04-12)
 - Fixed a bug where closing a color editor would crash the game
 

@@ -46,26 +46,41 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         auto bottom = std::max(-3000.0f, origin.y);
         auto top = std::min(m_editorLayer->m_levelSettings->m_dynamicLevelHeight ? 30090.0f : 2490.0f, winSize.height + origin.y);
 
+        auto mod = Mod::get();
         auto hideInvisible = SmartBPMTrigger::variable<"0121", bool>();
+        auto bpmColor = SmartBPMTrigger::getColor(GuidelineType::BPM, mod);
+        auto bpmWidth = SmartBPMTrigger::getWidth(GuidelineType::BPM, mod);
+        auto bpbColor = SmartBPMTrigger::getColor(GuidelineType::BPB, mod);
+        auto bpbWidth = SmartBPMTrigger::getWidth(GuidelineType::BPB, mod);
         for (auto& [_, object] : audioLineGuides) {
             if (object->m_disabled || (hideInvisible && object->m_isHide && !object->m_isSelected) || object->m_beatsPerMinute <= 0) continue;
 
             auto beats = 0;
-            auto bpb = object->m_beatsPerBar > 0 ? object->m_beatsPerBar : 1;
-            auto initialTime = timeForPos(object->getPosition(), 0, 0, false, true, false, 0);
-            auto timeInterval = 60.0 / (object->m_beatsPerMinute * bpb);
+            auto bpb = std::max(object->m_beatsPerBar, 1);
             auto triggerData = static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr));
-            for (auto time = initialTime; time < initialTime + object->m_duration; time += timeInterval, beats++) {
-                auto pos = posForTime(time).x;
-                if (beats % bpb == 0) f->m_bpmGuidelines.push_back(pos);
+            auto disabled = triggerData && triggerData->m_disabled;
+            auto initialTime = disabled ? object->getPositionX() : timeForPos(object->getPosition(), 0, 0, false, true, false, 0);
+            auto speed = 1.0f;
+            if (disabled) {
+                switch (object->m_speed) {
+                    case Speed::Slow: speed = m_slowSpeed; break;
+                    case Speed::Fast: speed = m_fastSpeed; break;
+                    case Speed::Faster: speed = m_fasterSpeed; break;
+                    case Speed::Fastest: speed = m_fastestSpeed; break;
+                    default: speed = m_normalSpeed; break;
+                }
+            }
+            auto timeInterval = speed * 60.0f / (object->m_beatsPerMinute * bpb);
+            for (auto time = initialTime; time < initialTime + object->m_duration * speed; time += timeInterval, beats++) {
+                auto pos = disabled ? time : posForTime(time).x;
+                auto index = beats % bpb;
+                if (index == 0) f->m_bpmGuidelines.push_back(pos);
                 else f->m_bpbGuidelines.push_back(pos);
 
                 if (pos < left || pos > right || !triggerData || triggerData->m_colors.empty() || triggerData->m_widths.empty()) continue;
 
-                auto index = beats % bpb;
-                auto& [r, g, b, a] = triggerData->m_colors[index];
-                ccDrawColor4B(r, g, b, a);
-                glLineWidth(triggerData->m_widths[index]);
+                ccDrawColor4B(triggerData->m_changed ? triggerData->m_colors[index] : index == 0 ? bpmColor : bpbColor);
+                glLineWidth(triggerData->m_changed ? triggerData->m_widths[index] : index == 0 ? bpmWidth : bpbWidth);
                 ccDrawLine({ pos, bottom }, { pos, top });
             }
         }
@@ -73,7 +88,6 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
         for (auto& [k, v] : audioLineGuides) m_audioLineObjects[k] = v;
 
         if (SmartBPMTrigger::gameManager && SmartBPMTrigger::gameManager->m_showSongMarkers && timeMarkers->count() > 0) {
-            auto mod = Mod::get();
             for (int i = 0; i < timeMarkers->count(); i += 2) {
                 auto pos = timeMarkers->stringAtIndex(i)->floatValue();
                 auto type = timeMarkers->stringAtIndex(i + 1)->floatValue();
@@ -84,33 +98,36 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
             }
 
             if (!f->m_orangeGuidelines.empty()) {
-                auto orangeColor = SmartBPMTrigger::getColor(GuidelineType::Orange, mod);
-                auto orangeWidth = SmartBPMTrigger::getWidth(GuidelineType::Orange, mod);
+                ccDrawColor4B(SmartBPMTrigger::getColor(GuidelineType::Orange, mod));
+                glLineWidth(SmartBPMTrigger::getWidth(GuidelineType::Orange, mod));
+                std::vector<CCPoint> points;
                 for (auto& pos : ranges::filter(f->m_orangeGuidelines, [left, right](float pos) { return pos >= left && pos <= right; })) {
-                    ccDrawColor4B(orangeColor.r, orangeColor.g, orangeColor.b, orangeColor.a);
-                    glLineWidth(orangeWidth);
-                    ccDrawLine({ pos, bottom }, { pos, top });
+                    points.push_back({ pos, bottom });
+                    points.push_back({ pos, top });
                 }
+                ccDrawLines(points.data(), points.size());
             }
 
             if (!f->m_yellowGuidelines.empty()) {
-                auto yellowColor = SmartBPMTrigger::getColor(GuidelineType::Yellow, mod);
-                auto yellowWidth = SmartBPMTrigger::getWidth(GuidelineType::Yellow, mod);
+                ccDrawColor4B(SmartBPMTrigger::getColor(GuidelineType::Yellow, mod));
+                glLineWidth(SmartBPMTrigger::getWidth(GuidelineType::Yellow, mod));
+                std::vector<CCPoint> points;
                 for (auto& pos : ranges::filter(f->m_yellowGuidelines, [left, right](float pos) { return pos >= left && pos <= right; })) {
-                    ccDrawColor4B(yellowColor.r, yellowColor.g, yellowColor.b, yellowColor.a);
-                    glLineWidth(yellowWidth);
-                    ccDrawLine({ pos, bottom }, { pos, top });
+                    points.push_back({ pos, bottom });
+                    points.push_back({ pos, top });
                 }
+                ccDrawLines(points.data(), points.size());
             }
 
             if (!f->m_greenGuidelines.empty()) {
-                auto greenColor = SmartBPMTrigger::getColor(GuidelineType::Green, mod);
-                auto greenWidth = SmartBPMTrigger::getWidth(GuidelineType::Green, mod);
+                ccDrawColor4B(SmartBPMTrigger::getColor(GuidelineType::Green, mod));
+                glLineWidth(SmartBPMTrigger::getWidth(GuidelineType::Green, mod));
+                std::vector<CCPoint> points;
                 for (auto& pos : ranges::filter(f->m_greenGuidelines, [left, right](float pos) { return pos >= left && pos <= right; })) {
-                    ccDrawColor4B(greenColor.r, greenColor.g, greenColor.b, greenColor.a);
-                    glLineWidth(greenWidth);
-                    ccDrawLine({ pos, bottom }, { pos, top });
+                    points.push_back({ pos, bottom });
+                    points.push_back({ pos, top });
                 }
+                ccDrawLines(points.data(), points.size());
             }
         }
 

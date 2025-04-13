@@ -7,9 +7,16 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
     auto ret = new SBTTriggerData();
     ret->m_beats = beats;
 
+    auto mod = Mod::get();
+    auto bpmColor = SmartBPMTrigger::getColor(GuidelineType::BPM, mod);
+    auto bpmWidth = SmartBPMTrigger::getWidth(GuidelineType::BPM, mod);
+    auto bpbColor = SmartBPMTrigger::getColor(GuidelineType::BPB, mod);
+    auto bpbWidth = SmartBPMTrigger::getWidth(GuidelineType::BPB, mod);
+
     if (!str.empty()) {
         auto split = string::split(str, ",");
 
+        auto hasChanged = false;
         for (auto it = split.begin(); it != split.end(); it += 2) {
             auto& type = it[0];
             auto& value = it[1];
@@ -32,22 +39,47 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
                     ret->m_widths.push_back(numFromString<float>(widths[i]).unwrapOr(0.0f));
                 }
             }
+            else if (type == "3") ret->m_disabled = numFromString<uint32_t>(value).unwrapOr(0) > 0;
+            else if (type == "4") {
+                hasChanged = true;
+                ret->m_changed = numFromString<uint32_t>(value).unwrapOr(0) > 0;
+            }
+        }
+
+        if (!hasChanged) {
+            for (int i = 0; i < ret->m_colors.size(); i++) {
+                if (i == 0 && ret->m_colors[i] != bpmColor) {
+                    ret->m_changed = true;
+                    break;
+                }
+                else if (i != 0 && ret->m_colors[i] != bpbColor) {
+                    ret->m_changed = true;
+                    break;
+                }
+            }
+
+            if (!ret->m_changed) {
+                for (int i = 0; i < ret->m_widths.size(); i++) {
+                    if (i == 0 && ret->m_widths[i] != bpmWidth) {
+                        ret->m_changed = true;
+                        break;
+                    }
+                    else if (i != 0 && ret->m_widths[i] != bpbWidth) {
+                        ret->m_changed = true;
+                        break;
+                    }
+                }
+            }
         }
     }
 
-    auto mod = Mod::get();
-
     if (ret->m_colors.size() < beats) {
-        auto bpmColor = SmartBPMTrigger::getColor(GuidelineType::BPM, mod);
-        auto bpbColor = SmartBPMTrigger::getColor(GuidelineType::BPB, mod);
         for (int i = ret->m_colors.size(); i < beats; i++) {
             ret->m_colors.push_back(i == 0 ? bpmColor : bpbColor);
         }
     }
 
     if (ret->m_widths.size() < beats) {
-        auto bpmWidth = SmartBPMTrigger::getWidth(GuidelineType::BPM, mod);
-        auto bpbWidth = SmartBPMTrigger::getWidth(GuidelineType::BPB, mod);
         for (int i = ret->m_widths.size(); i < beats; i++) {
             ret->m_widths.push_back(i == 0 ? bpmWidth : bpbWidth);
         }
@@ -80,6 +112,16 @@ std::string SBTTriggerData::getSaveString() {
             widths += fmt::to_string(m_widths[i]);
         }
         ret += widths;
+    }
+
+    if (m_disabled) {
+        if (!ret.empty()) ret += ',';
+        ret += "3,1";
+    }
+
+    if (m_changed) {
+        if (!ret.empty()) ret += ',';
+        ret += "4,1";
     }
 
     return ret;

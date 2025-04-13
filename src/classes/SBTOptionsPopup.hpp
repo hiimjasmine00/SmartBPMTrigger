@@ -6,6 +6,7 @@ class SBTOptionsPopup : public geode::Popup<SBTTriggerData*>, ColorSelectDelegat
 protected:
     std::vector<cocos2d::ccColor4B> m_colors;
     std::vector<float> m_widths;
+    bool m_changed;
 
     bool setup(SBTTriggerData*) override;
 public:

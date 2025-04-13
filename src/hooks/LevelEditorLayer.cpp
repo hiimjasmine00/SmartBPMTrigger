@@ -70,9 +70,7 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
         std::ranges::sort(keys);
 
         auto splitData = string::split(decodedText, ";");
-        for (int i = 0; i < keys.size(); i++) {
-            if (splitData.size() <= i) break;
-
+        for (int i = 0; i < keys.size() && i < splitData.size(); i++) {
             auto object = audioLineObjects[keys[i]];
             object->setUserObject("trigger-data"_spr, SBTTriggerData::create(splitData[i], object->m_beatsPerBar));
         }

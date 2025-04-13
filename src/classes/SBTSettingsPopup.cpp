@@ -159,62 +159,6 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     bpbLabel->setID("bpb-label");
     m_mainLayer->addChild(bpbLabel);
 
-    auto ui = layer->m_editorUI;
-    auto objectSelected = ui->m_selectedObject || (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0);
-    auto opacity = 127 + (objectSelected * 128);
-
-    auto snapSprite = ButtonSprite::create("Snap", 0.8f);
-    snapSprite->m_BGSprite->setOpacity(opacity);
-    snapSprite->m_label->setOpacity(opacity);
-    auto snapButton = CCMenuItemExt::createSpriteExtra(snapSprite, [this, layer, ui](auto) {
-        auto mod = Mod::get();
-        auto type = GuidelineType::None;
-        for (int i = 1; i < 32; i <<= 1) {
-            if (SmartBPMTrigger::getSnap((GuidelineType)i, mod)) type |= (GuidelineType)i;
-        }
-        auto guidelines = SmartBPMTrigger::getGuidelines(layer->m_drawGridLayer, type);
-        if (guidelines.empty()) return onClose(nullptr);
-
-        if (ui->m_selectedObject) {
-            auto x = ui->m_selectedObject->getPositionX();
-            auto guidelinesCopy = guidelines;
-            std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
-            layer->addToUndoList(UndoObject::create(ui->m_selectedObject, UndoCommand::Transform), false);
-            ui->moveObject(ui->m_selectedObject, { guidelinesCopy[0] - x, 0.0f });
-        }
-        else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
-            if (SmartBPMTrigger::snapDistribute(mod)) {
-                auto undoObjectCreated = false;
-                for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
-                    auto x = object->getPositionX();
-                    auto guidelinesCopy = guidelines;
-                    std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
-                    if (!undoObjectCreated) {
-                        ui->createUndoObject(UndoCommand::Transform, false);
-                        undoObjectCreated = true;
-                    }
-                    ui->moveObject(object, { guidelinesCopy[0] - x, 0.0f });
-                }
-            }
-            else {
-                auto x = ui->getGroupCenter(ui->m_selectedObjects, false).x;
-                auto guidelinesCopy = guidelines;
-                std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
-                auto dx = guidelinesCopy[0] - x;
-                ui->createUndoObject(UndoCommand::Transform, false);
-                for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
-                    ui->moveObject(object, { dx, 0.0f });
-                }
-            }
-        }
-
-        onClose(nullptr);
-    });
-    snapButton->setPosition({ 100.0f, 25.0f });
-    snapButton->setEnabled(objectSelected);
-    snapButton->setID("snap-button");
-    m_buttonMenu->addChild(snapButton);
-
     auto loopLabel = CCLabelBMFont::create("BPM Spawn Loop", "goldFont.fnt");
     loopLabel->setPosition({ 300.0f, 155.0f });
     loopLabel->setScale(0.6f);
@@ -222,12 +166,6 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_mainLayer->addChild(loopLabel);
 
     auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
-
-    auto loopBPMLabel = CCLabelBMFont::create(fmt::format("{} BPM", spawnBPM).c_str(), "bigFont.fnt");
-    loopBPMLabel->setPosition({ 300.0f, 80.0f });
-    loopBPMLabel->setScale(0.3f);
-    loopBPMLabel->setID("loop-bpm-label");
-    m_mainLayer->addChild(loopBPMLabel);
 
     auto loopBPMInput = TextInput::create(70.0f, "BPM");
     loopBPMInput->setPosition({ 300.0f, 100.0f });
@@ -241,119 +179,68 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     loopBPMInput->setID("loop-bpm-input");
     m_mainLayer->addChild(loopBPMInput);
 
+    auto loopBPMLabel = CCLabelBMFont::create(fmt::format("{} BPM", spawnBPM).c_str(), "bigFont.fnt");
+    loopBPMLabel->setPosition({ 300.0f, 80.0f });
+    loopBPMLabel->setScale(0.3f);
+    loopBPMLabel->setID("loop-bpm-label");
+    m_mainLayer->addChild(loopBPMLabel);
+
     m_listeners.emplace(SmartBPMTrigger::settingListener<"spawn-bpm", int>([loopBPMInput, loopBPMLabel](int value) {
         loopBPMInput->setString(fmt::to_string(value));
         loopBPMLabel->setString(fmt::format("{} BPM", value).c_str());
     }, mod));
 
-    auto createSprite = ButtonSprite::create("Create", 0.8f);
-    createSprite->m_BGSprite->setOpacity(opacity);
-    createSprite->m_label->setOpacity(opacity);
-    auto createButton = CCMenuItemExt::createSpriteExtra(createSprite, [this, layer, ui](auto) {
-        auto spawnBPM = SmartBPMTrigger::spawnBPM();
+    auto bpmSmallLeftButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_leftBtn_001.png", 1.0f, [](auto) {
+        auto mod = Mod::get();
+        auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
+        if (spawnBPM > 1) SmartBPMTrigger::setSpawnBPM(spawnBPM - 1, mod);
+    });
+    bpmSmallLeftButton->setPosition({ 250.0f, 100.0f });
+    bpmSmallLeftButton->setID("bpm-small-left-button");
+    m_buttonMenu->addChild(bpmSmallLeftButton);
 
-        auto spawnObjects = CCArray::create();
-        if (ui->m_selectedObject) spawnObjects->addObject(ui->m_selectedObject);
-        else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) spawnObjects->addObjectsFromArray(ui->m_selectedObjects);
+    auto bpmSmallRightButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_rightBtn_001.png", 1.0f, [](auto) {
+        auto mod = Mod::get();
+        auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
+        if (spawnBPM < 999) SmartBPMTrigger::setSpawnBPM(spawnBPM + 1, mod);
+    });
+    bpmSmallRightButton->setPosition({ 350.0f, 100.0f });
+    bpmSmallRightButton->setID("bpm-small-right-button");
+    m_buttonMenu->addChild(bpmSmallRightButton);
 
-        for (int i = 0; i < spawnObjects->count(); i++) {
-            if (!static_cast<GameObject*>(spawnObjects->objectAtIndex(i))->isSpawnableTrigger()) {
-                spawnObjects->removeObjectAtIndex(i);
-                i--;
-            }
-        }
+    auto bpmBigLeftButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_leftBtn2_001.png", 0.8f, [](auto) {
+        auto mod = Mod::get();
+        auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
+        if (spawnBPM > 1) SmartBPMTrigger::setSpawnBPM(std::max(spawnBPM - 10, 1), mod);
+    });
+    bpmBigLeftButton->setPosition({ 230.0f, 100.0f });
+    bpmBigLeftButton->setID("bpm-big-left-button");
+    m_buttonMenu->addChild(bpmBigLeftButton);
 
-        auto spawnObjectsBegin = reinterpret_cast<GameObject**>(spawnObjects->data->arr);
-        std::sort(spawnObjectsBegin, spawnObjectsBegin + spawnObjects->data->num, [](GameObject* a, GameObject* b) {
-            return a->getRealPosition().x < b->getRealPosition().x;
-        });
+    auto bpmBigRightButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_rightBtn2_001.png", 0.8f, [](auto) {
+        auto mod = Mod::get();
+        auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
+        if (spawnBPM < 999) SmartBPMTrigger::setSpawnBPM(std::min(spawnBPM + 10, 999), mod);
+    });
+    bpmBigRightButton->setPosition({ 370.0f, 100.0f });
+    bpmBigRightButton->setID("bpm-big-right-button");
+    m_buttonMenu->addChild(bpmBigRightButton);
 
-        auto spawnArray = CCArray::create();
-        auto x = 0.0f;
-        auto y = 0.0f;
-        for (int i = 0; i < spawnObjects->count(); i++) {
-            auto object = static_cast<EffectGameObject*>(spawnObjects->objectAtIndex(i));
-            object->m_isSpawnTriggered = true;
-            object->m_isMultiTriggered = true;
-            auto realPosition = object->getRealPosition();
-            if (realPosition.x < x || x == 0.0f) x = realPosition.x;
-            if (realPosition.y > y || y == 0.0f) y = realPosition.y;
-            if (spawnArray->count() > 0) {
-                auto lastArray = static_cast<CCArray*>(spawnArray->lastObject());
-                auto lastRealPosition = static_cast<GameObject*>(lastArray->objectAtIndex(0))->getRealPosition();
-                if (realPosition.x - lastRealPosition.x > 0.1f) {
-                    auto innerArray = CCArray::create();
-                    innerArray->addObject(object);
-                    spawnArray->addObject(innerArray);
-                }
-                else lastArray->addObject(object);
-            }
-            else {
-                auto innerArray = CCArray::create();
-                innerArray->addObject(object);
-                spawnArray->addObject(innerArray);
-            }
-        }
+    auto ui = layer->m_editorUI;
+    auto objectSelected = ui->m_selectedObject || (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0);
+    auto opacity = 127 + (objectSelected * 128);
 
-        auto groupID = layer->getNextFreeGroupID(nullptr);
-        auto firstID = groupID;
-        auto mainTrigger = static_cast<SpawnTriggerGameObject*>(ui->createObject(1268, { x, y + 90.0f }));
-        mainTrigger->m_targetGroupID = std::clamp(groupID, 0, 9999);
-        layer->removeSpecial(mainTrigger);
-        layer->addSpecial(mainTrigger);
-
-        auto time = layer->timeForPos({ x, 0.0f }, 0, 0, false, 0);
-        auto delay = 0.0f;
-        auto sum = 0.0f;
-        auto oldID = groupID;
-        auto lastIndex = spawnArray->count() - 1;
-        for (int i = 0; i < spawnArray->count(); i++) {
-            auto innerArray = static_cast<CCArray*>(spawnArray->objectAtIndex(i));
-            auto diff = delay;
-            if (i < lastIndex) {
-                diff = layer->timeForPos({
-                    static_cast<GameObject*>(static_cast<CCArray*>(spawnArray->objectAtIndex(i + 1))->objectAtIndex(0))->getRealPosition().x,
-                    0.0f
-                }, 0, 0, false, 0) - time;
-            }
-            groupID = oldID;
-            for (int j = 0; j < innerArray->count(); j++) {
-                auto object = static_cast<EffectGameObject*>(innerArray->objectAtIndex(j));
-                if (object->addToGroup(oldID) == 1) layer->addToGroup(object, oldID, false);
-                if (j == 0) {
-                    delay = diff;
-                    groupID = firstID;
-                    if (i != lastIndex) {
-                        groupID = layer->getNextFreeGroupID(nullptr);
-                        delay = diff - sum;
-                    }
-                    else delay = std::max((60.0f / spawnBPM) - sum, 0.0f);
-                    auto spawnTrigger = static_cast<SpawnTriggerGameObject*>(ui->createObject(1268, { object->getRealPosition().x, y + 60.0f }));
-                    if (spawnTrigger->addToGroup(oldID) == 1) layer->addToGroup(spawnTrigger, oldID, false);
-                    spawnTrigger->m_spawnDelay = delay;
-                    spawnTrigger->m_isSpawnTriggered = true;
-                    spawnTrigger->m_isMultiTriggered = true;
-                    spawnTrigger->m_targetGroupID = std::clamp(groupID, 0, 9999);
-                    layer->removeSpecial(spawnTrigger);
-                    layer->addSpecial(spawnTrigger);
-                    sum += delay;
-                }
-            }
-            oldID = groupID;
-        }
-
-        layer->m_unk3760 = true;
-        layer->m_colorTriggersChanged = true;
-        layer->m_pulseTriggersChanged = true;
-        layer->m_alphaTriggersChanged = true;
-        layer->m_spawnTriggersChanged = true;
-
+    auto snapSprite = ButtonSprite::create("Snap", 0.8f);
+    snapSprite->m_BGSprite->setOpacity(opacity);
+    snapSprite->m_label->setOpacity(opacity);
+    auto snapButton = CCMenuItemExt::createSpriteExtra(snapSprite, [this, layer](auto) {
+        guidelineSnap(layer);
         onClose(nullptr);
     });
-    createButton->setPosition({ 300.0f, 25.0f });
-    createButton->setEnabled(objectSelected);
-    createButton->setID("create-button");
-    m_buttonMenu->addChild(createButton);
+    snapButton->setPosition({ 100.0f, 25.0f });
+    snapButton->setEnabled(objectSelected);
+    snapButton->setID("snap-button");
+    m_buttonMenu->addChild(snapButton);
 
     auto settingsButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Settings", 0.8f), [](auto) {
         openSettingsPopup(Mod::get());
@@ -362,5 +249,160 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     settingsButton->setID("settings-button");
     m_buttonMenu->addChild(settingsButton);
 
+    auto createSprite = ButtonSprite::create("Create", 0.8f);
+    createSprite->m_BGSprite->setOpacity(opacity);
+    createSprite->m_label->setOpacity(opacity);
+    auto createButton = CCMenuItemExt::createSpriteExtra(createSprite, [this, layer](auto) {
+        createLoop(layer);
+        onClose(nullptr);
+    });
+    createButton->setPosition({ 300.0f, 25.0f });
+    createButton->setEnabled(objectSelected);
+    createButton->setID("create-button");
+    m_buttonMenu->addChild(createButton);
+
     return true;
+}
+
+void SBTSettingsPopup::guidelineSnap(LevelEditorLayer* layer) {
+    auto mod = Mod::get();
+    auto type = GuidelineType::None;
+    for (int i = 1; i < 32; i <<= 1) {
+        if (SmartBPMTrigger::getSnap((GuidelineType)i, mod)) type |= (GuidelineType)i;
+    }
+    auto guidelines = SmartBPMTrigger::getGuidelines(layer->m_drawGridLayer, type);
+    if (guidelines.empty()) return;
+
+    auto ui = layer->m_editorUI;
+    if (ui->m_selectedObject) {
+        auto x = ui->m_selectedObject->getPositionX();
+        auto guidelinesCopy = guidelines;
+        std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
+        layer->addToUndoList(UndoObject::create(ui->m_selectedObject, UndoCommand::Transform), false);
+        ui->moveObject(ui->m_selectedObject, { guidelinesCopy[0] - x, 0.0f });
+    }
+    else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
+        if (SmartBPMTrigger::snapDistribute(mod)) {
+            auto undoObjectCreated = false;
+            for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
+                auto x = object->getPositionX();
+                auto guidelinesCopy = guidelines;
+                std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
+                if (!undoObjectCreated) {
+                    ui->createUndoObject(UndoCommand::Transform, false);
+                    undoObjectCreated = true;
+                }
+                ui->moveObject(object, { guidelinesCopy[0] - x, 0.0f });
+            }
+        }
+        else {
+            auto x = ui->getGroupCenter(ui->m_selectedObjects, false).x;
+            auto guidelinesCopy = guidelines;
+            std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
+            auto dx = guidelinesCopy[0] - x;
+            ui->createUndoObject(UndoCommand::Transform, false);
+            for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
+                ui->moveObject(object, { dx, 0.0f });
+            }
+        }
+    }
+}
+
+void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
+    auto spawnObjects = CCArray::create();
+    auto ui = layer->m_editorUI;
+    if (ui->m_selectedObject) spawnObjects->addObject(ui->m_selectedObject);
+    else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) spawnObjects->addObjectsFromArray(ui->m_selectedObjects);
+
+    for (int i = 0; i < spawnObjects->count(); i++) {
+        if (!static_cast<GameObject*>(spawnObjects->objectAtIndex(i))->isSpawnableTrigger()) {
+            spawnObjects->removeObjectAtIndex(i);
+            i--;
+        }
+    }
+
+    auto spawnObjectsBegin = reinterpret_cast<GameObject**>(spawnObjects->data->arr);
+    std::sort(spawnObjectsBegin, spawnObjectsBegin + spawnObjects->data->num, [](GameObject* a, GameObject* b) {
+        return a->getRealPosition().x < b->getRealPosition().x;
+    });
+
+    auto spawnArray = CCArray::create();
+    auto x = 0.0f;
+    auto y = 0.0f;
+    for (int i = 0; i < spawnObjects->count(); i++) {
+        auto object = static_cast<EffectGameObject*>(spawnObjects->objectAtIndex(i));
+        object->m_isSpawnTriggered = true;
+        object->m_isMultiTriggered = true;
+        auto realPosition = object->getRealPosition();
+        if (realPosition.x < x || x == 0.0f) x = realPosition.x;
+        if (realPosition.y > y || y == 0.0f) y = realPosition.y;
+        if (spawnArray->count() > 0) {
+            auto lastArray = static_cast<CCArray*>(spawnArray->lastObject());
+            auto lastRealPosition = static_cast<GameObject*>(lastArray->objectAtIndex(0))->getRealPosition();
+            if (realPosition.x - lastRealPosition.x > 0.1f) {
+                auto innerArray = CCArray::create();
+                innerArray->addObject(object);
+                spawnArray->addObject(innerArray);
+            }
+            else lastArray->addObject(object);
+        }
+        else {
+            auto innerArray = CCArray::create();
+            innerArray->addObject(object);
+            spawnArray->addObject(innerArray);
+        }
+    }
+
+    auto groupID = layer->getNextFreeGroupID(nullptr);
+    auto firstID = groupID;
+    auto mainTrigger = static_cast<SpawnTriggerGameObject*>(ui->createObject(1268, { x, y + 90.0f }));
+    mainTrigger->m_targetGroupID = std::clamp(groupID, 0, 9999);
+    layer->removeSpecial(mainTrigger);
+    layer->addSpecial(mainTrigger);
+
+    auto time = layer->timeForPos({ x, 0.0f }, 0, 0, false, 0);
+    auto delay = 0.0f;
+    auto sum = 0.0f;
+    auto oldID = groupID;
+    auto lastIndex = spawnArray->count() - 1;
+    for (int i = 0; i < spawnArray->count(); i++) {
+        auto innerArray = static_cast<CCArray*>(spawnArray->objectAtIndex(i));
+        auto diff = delay;
+        if (i < lastIndex) {
+            diff = layer->timeForPos({
+                static_cast<GameObject*>(static_cast<CCArray*>(spawnArray->objectAtIndex(i + 1))->objectAtIndex(0))->getRealPosition().x,
+                0.0f
+            }, 0, 0, false, 0) - time;
+        }
+        groupID = oldID;
+        for (int j = 0; j < innerArray->count(); j++) {
+            auto object = static_cast<EffectGameObject*>(innerArray->objectAtIndex(j));
+            if (object->addToGroup(oldID) == 1) layer->addToGroup(object, oldID, false);
+            if (j == 0) {
+                delay = diff;
+                groupID = firstID;
+                if (i != lastIndex) {
+                    groupID = layer->getNextFreeGroupID(nullptr);
+                    delay = diff - sum;
+                }
+                else delay = std::max(60.0f / SmartBPMTrigger::spawnBPM() - sum, 0.0f);
+                auto spawnTrigger = static_cast<SpawnTriggerGameObject*>(ui->createObject(1268, { object->getRealPosition().x, y + 60.0f }));
+                if (spawnTrigger->addToGroup(oldID) == 1) layer->addToGroup(spawnTrigger, oldID, false);
+                spawnTrigger->m_spawnDelay = delay;
+                spawnTrigger->m_isSpawnTriggered = true;
+                spawnTrigger->m_isMultiTriggered = true;
+                spawnTrigger->m_targetGroupID = std::clamp(groupID, 0, 9999);
+                layer->removeSpecial(spawnTrigger);
+                layer->addSpecial(spawnTrigger);
+                sum += delay;
+            }
+        }
+        oldID = groupID;
+    }
+
+    layer->m_unk3760 = true;
+    layer->m_colorTriggersChanged = true;
+    layer->m_pulseTriggersChanged = true;
+    layer->m_alphaTriggersChanged = true;
+    layer->m_spawnTriggersChanged = true;
 }

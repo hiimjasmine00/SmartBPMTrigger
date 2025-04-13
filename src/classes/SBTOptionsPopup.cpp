@@ -52,6 +52,7 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
     auto saveButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Save", 0.8f), [this, triggerData](auto) {
         triggerData->m_colors = m_colors;
         triggerData->m_widths = m_widths;
+        triggerData->m_changed = m_changed;
         onClose(nullptr);
     });
     saveButton->setPosition({ 125.0f, 25.0f });
@@ -64,10 +65,12 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
 void SBTOptionsPopup::colorSelectClosed(CCNode* node) {
     auto action = static_cast<ColorSelectPopup*>(node)->m_colorAction;
     auto index = node->getTag();
-    m_colors[index] = { action->m_fromColor.r, action->m_fromColor.g, action->m_fromColor.b, (uint8_t)action->m_fromOpacity };
+    ccColor4B newColor = { action->m_fromColor.r, action->m_fromColor.g, action->m_fromColor.b, (uint8_t)action->m_fromOpacity };
+    m_changed = m_changed || m_colors[index] != newColor || m_widths[index] != action->m_toOpacity;
+    m_colors[index] = newColor;
     m_widths[index] = action->m_toOpacity;
     auto sprite = static_cast<CCSprite*>(static_cast<CCMenuItemSprite*>(m_buttonMenu->getChildByTag(index))->getNormalImage());
-    sprite->setColor({ action->m_fromColor.r, action->m_fromColor.g, action->m_fromColor.b });
+    sprite->setColor(action->m_fromColor);
     sprite->setOpacity(action->m_fromOpacity);
     static_cast<CCLabelBMFont*>(sprite->getChildren()->objectAtIndex(0))->setString(fmt::format("{:.02f}", action->m_toOpacity).c_str());
 }
