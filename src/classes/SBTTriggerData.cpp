@@ -17,32 +17,42 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
         auto split = string::split(str, ",");
 
         auto hasChanged = false;
-        for (auto it = split.begin(); it != split.end(); it += 2) {
+        for (auto it = split.begin(); it < split.end() && it + 1 < split.end(); it += 2) {
             auto& type = it[0];
             auto& value = it[1];
 
-            if (type == "1") {
-                auto colors = string::split(value, "~");
-                for (int i = 0; i < beats && i < colors.size(); i++) {
-                    auto hexColor = numFromString<uint32_t>(colors[i]).unwrapOr(0);
-                    ret->m_colors.push_back({
-                        (uint8_t)((hexColor >> 24) & 255),
-                        (uint8_t)((hexColor >> 16) & 255),
-                        (uint8_t)((hexColor >> 8) & 255),
-                        (uint8_t)(hexColor & 255)
-                    });
+            if (type.size() != 1 || value.empty()) continue;
+
+            switch (type[0]) {
+                case '1': {
+                    auto colors = string::split(value, "~");
+                    for (int i = 0; i < beats && i < colors.size(); i++) {
+                        auto hexColor = numFromString<uint32_t>(colors[i]).unwrapOr(0);
+                        ret->m_colors.push_back({
+                            (uint8_t)((hexColor >> 24) & 255),
+                            (uint8_t)((hexColor >> 16) & 255),
+                            (uint8_t)((hexColor >> 8) & 255),
+                            (uint8_t)(hexColor & 255)
+                        });
+                    }
+                    break;
                 }
-            }
-            else if (type == "2") {
-                auto widths = string::split(value, "~");
-                for (int i = 0; i < beats && i < widths.size(); i++) {
-                    ret->m_widths.push_back(numFromString<float>(widths[i]).unwrapOr(0.0f));
+                case '2': {
+                    auto widths = string::split(value, "~");
+                    for (int i = 0; i < beats && i < widths.size(); i++) {
+                        ret->m_widths.push_back(numFromString<float>(widths[i]).unwrapOr(0.0f));
+                    }
+                    break;
                 }
-            }
-            else if (type == "3") ret->m_disabled = numFromString<uint32_t>(value).unwrapOr(0) > 0;
-            else if (type == "4") {
-                hasChanged = true;
-                ret->m_changed = numFromString<uint32_t>(value).unwrapOr(0) > 0;
+                case '3': {
+                    ret->m_disabled = numFromString<uint32_t>(value).unwrapOr(0) > 0;
+                    break;
+                }
+                case '4': {
+                    hasChanged = true;
+                    ret->m_changed = numFromString<uint32_t>(value).unwrapOr(0) > 0;
+                    break;
+                }
             }
         }
 

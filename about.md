@@ -8,6 +8,9 @@ A mod that improves the BPM trigger in the editor.
 - Snap object(s) to guideline button in the "Edit" menu (BPM trigger guidelines, manual guidelines, and official song guidelines)
 - BPM spawn loop creator to spawn triggers in a rate of beats per minute
 
+## Gallery
+![Settings Popup](hiimjasmine00.smart_bpm_trigger/settings-popup.png?width=300)
+
 ## Credits
 - [IOMAN](user:8265048) - Original idea for the mod
 - [hiimjasmine00](user:7466002) - Creator of the mod

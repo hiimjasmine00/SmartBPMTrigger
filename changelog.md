@@ -1,4 +1,8 @@
 # Smart BPM Trigger Changelog
+## v1.1.3 (2025-04-22)
+- Fixed a rare crash when opening levels
+- Added a gallery to the mod's about page
+
 ## v1.1.2 (2025-04-13)
 - Allowed changing of existing BPM trigger colors via default settings, as long as they were not manually set
 - Added an option in the BPM trigger settings to turn off smart guidelines
