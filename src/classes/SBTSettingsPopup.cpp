@@ -266,41 +266,29 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
 
 void SBTSettingsPopup::guidelineSnap(LevelEditorLayer* layer) {
     auto mod = Mod::get();
-    auto type = GuidelineType::None;
-    for (int i = 1; i < 32; i <<= 1) {
-        if (SmartBPMTrigger::getSnap((GuidelineType)i, mod)) type |= (GuidelineType)i;
-    }
-    auto guidelines = SmartBPMTrigger::getGuidelines(layer->m_drawGridLayer, type);
+    auto guidelines = SmartBPMTrigger::getGuidelines(layer->m_drawGridLayer, mod);
     if (guidelines.empty()) return;
 
     auto ui = layer->m_editorUI;
     if (ui->m_selectedObject) {
-        auto x = ui->m_selectedObject->getPositionX();
-        auto guidelinesCopy = guidelines;
-        std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
         layer->addToUndoList(UndoObject::create(ui->m_selectedObject, UndoCommand::Transform), false);
-        ui->moveObject(ui->m_selectedObject, { guidelinesCopy[0] - x, 0.0f });
+        auto x = ui->m_selectedObject->getPositionX();
+        std::ranges::sort(guidelines, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
+        ui->moveObject(ui->m_selectedObject, { guidelines[0] - x, 0.0f });
     }
     else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
+        ui->createUndoObject(UndoCommand::Transform, false);
         if (SmartBPMTrigger::snapDistribute(mod)) {
-            auto undoObjectCreated = false;
             for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
                 auto x = object->getPositionX();
-                auto guidelinesCopy = guidelines;
-                std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
-                if (!undoObjectCreated) {
-                    ui->createUndoObject(UndoCommand::Transform, false);
-                    undoObjectCreated = true;
-                }
-                ui->moveObject(object, { guidelinesCopy[0] - x, 0.0f });
+                std::ranges::sort(guidelines, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
+                ui->moveObject(object, { guidelines[0] - x, 0.0f });
             }
         }
         else {
             auto x = ui->getGroupCenter(ui->m_selectedObjects, false).x;
-            auto guidelinesCopy = guidelines;
-            std::ranges::sort(guidelinesCopy, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
-            auto dx = guidelinesCopy[0] - x;
-            ui->createUndoObject(UndoCommand::Transform, false);
+            std::ranges::sort(guidelines, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
+            auto dx = guidelines[0] - x;
             for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
                 ui->moveObject(object, { dx, 0.0f });
             }
@@ -400,9 +388,5 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
         oldID = groupID;
     }
 
-    layer->m_unk3760 = true;
-    layer->m_colorTriggersChanged = true;
-    layer->m_pulseTriggersChanged = true;
-    layer->m_alphaTriggersChanged = true;
-    layer->m_spawnTriggersChanged = true;
+    layer->dirtifyTriggers();
 }

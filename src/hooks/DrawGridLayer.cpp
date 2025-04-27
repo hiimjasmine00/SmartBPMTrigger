@@ -59,7 +59,8 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
             auto bpb = std::max(object->m_beatsPerBar, 1);
             auto triggerData = static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr));
             auto disabled = triggerData && triggerData->m_disabled;
-            auto initialTime = disabled ? object->getPositionX() : timeForPos(object->getPosition(), 0, 0, false, true, false, 0);
+            auto& objectPosition = object->getPosition();
+            auto initialTime = disabled ? objectPosition.x : timeForPos(objectPosition, 0, 0, false, true, false, 0);
             auto speed = 1.0f;
             if (disabled) {
                 switch (object->m_speed) {
@@ -87,65 +88,67 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
 
         for (auto& [k, v] : audioLineGuides) m_audioLineObjects[k] = v;
 
-        if (SmartBPMTrigger::gameManager && SmartBPMTrigger::gameManager->m_showSongMarkers && timeMarkers->count() > 0) {
-            for (int i = 0; i < timeMarkers->count(); i += 2) {
-                auto pos = timeMarkers->stringAtIndex(i)->floatValue();
-                auto type = timeMarkers->stringAtIndex(i + 1)->floatValue();
+        auto timeMarkerCount = timeMarkers->count();
+        if (SmartBPMTrigger::gameManager && SmartBPMTrigger::gameManager->m_showSongMarkers && timeMarkerCount > 0) {
+            std::vector<CCPoint> orangePoints;
+            std::vector<CCPoint> yellowPoints;
+            std::vector<CCPoint> greenPoints;
 
-                if (type == 0.9f) f->m_yellowGuidelines.push_back(pos);
-                else if (type == 1.0f) f->m_greenGuidelines.push_back(pos);
-                else f->m_orangeGuidelines.push_back(pos);
+            for (int i = 0; i < timeMarkerCount - 1; i += 2) {
+                auto posString = static_cast<CCString*>(timeMarkers->objectAtIndex(i));
+                auto typeString = static_cast<CCString*>(timeMarkers->objectAtIndex(i + 1));
+                if (!posString || !typeString) continue;
+
+                auto pos = posString->floatValue();
+                auto type = typeString->floatValue();
+                auto visible = pos >= left && pos <= right;
+
+                auto& guidelines = type == 0.9f ? f->m_yellowGuidelines : type == 1.0f ? f->m_greenGuidelines : f->m_orangeGuidelines;
+                guidelines.push_back(pos);
+
+                if (pos < left || pos > right) continue;
+
+                auto& points = type == 0.9f ? yellowPoints : type == 1.0f ? greenPoints : orangePoints;
+                points.push_back({ pos, bottom });
+                points.push_back({ pos, top });
             }
 
-            if (!f->m_orangeGuidelines.empty()) {
+            if (!orangePoints.empty()) {
                 ccDrawColor4B(SmartBPMTrigger::getColor(GuidelineType::Orange, mod));
                 glLineWidth(SmartBPMTrigger::getWidth(GuidelineType::Orange, mod));
-                std::vector<CCPoint> points;
-                for (auto& pos : ranges::filter(f->m_orangeGuidelines, [left, right](float pos) { return pos >= left && pos <= right; })) {
-                    points.push_back({ pos, bottom });
-                    points.push_back({ pos, top });
-                }
-                ccDrawLines(points.data(), points.size());
+                ccDrawLines(orangePoints.data(), orangePoints.size());
             }
 
-            if (!f->m_yellowGuidelines.empty()) {
+            if (!yellowPoints.empty()) {
                 ccDrawColor4B(SmartBPMTrigger::getColor(GuidelineType::Yellow, mod));
                 glLineWidth(SmartBPMTrigger::getWidth(GuidelineType::Yellow, mod));
-                std::vector<CCPoint> points;
-                for (auto& pos : ranges::filter(f->m_yellowGuidelines, [left, right](float pos) { return pos >= left && pos <= right; })) {
-                    points.push_back({ pos, bottom });
-                    points.push_back({ pos, top });
-                }
-                ccDrawLines(points.data(), points.size());
+                ccDrawLines(yellowPoints.data(), yellowPoints.size());
             }
 
-            if (!f->m_greenGuidelines.empty()) {
+            if (!greenPoints.empty()) {
                 ccDrawColor4B(SmartBPMTrigger::getColor(GuidelineType::Green, mod));
                 glLineWidth(SmartBPMTrigger::getWidth(GuidelineType::Green, mod));
-                std::vector<CCPoint> points;
-                for (auto& pos : ranges::filter(f->m_greenGuidelines, [left, right](float pos) { return pos >= left && pos <= right; })) {
-                    points.push_back({ pos, bottom });
-                    points.push_back({ pos, top });
-                }
-                ccDrawLines(points.data(), points.size());
+                ccDrawLines(greenPoints.data(), greenPoints.size());
             }
         }
 
         if (m_timeMarkers) m_timeMarkers->addObjectsFromArray(timeMarkers);
         timeMarkers->release();
+
+        glLineWidth(1.0f);
     }
 };
 
-std::vector<float> SmartBPMTrigger::getGuidelines(DrawGridLayer* layer, GuidelineType type) {
+std::vector<float> SmartBPMTrigger::getGuidelines(DrawGridLayer* layer, Mod* mod) {
     std::vector<float> ret;
     if (!layer) return ret;
 
     auto f = static_cast<SBTDrawGridLayer*>(layer)->m_fields.self();
-    if ((type & GuidelineType::Orange) != GuidelineType::None) ret.insert(ret.end(), f->m_orangeGuidelines.begin(), f->m_orangeGuidelines.end());
-    if ((type & GuidelineType::Yellow) != GuidelineType::None) ret.insert(ret.end(), f->m_yellowGuidelines.begin(), f->m_yellowGuidelines.end());
-    if ((type & GuidelineType::Green) != GuidelineType::None) ret.insert(ret.end(), f->m_greenGuidelines.begin(), f->m_greenGuidelines.end());
-    if ((type & GuidelineType::BPM) != GuidelineType::None) ret.insert(ret.end(), f->m_bpmGuidelines.begin(), f->m_bpmGuidelines.end());
-    if ((type & GuidelineType::BPB) != GuidelineType::None) ret.insert(ret.end(), f->m_bpbGuidelines.begin(), f->m_bpbGuidelines.end());
+    if (getSnap(GuidelineType::Orange, mod)) ret.insert(ret.end(), f->m_orangeGuidelines.begin(), f->m_orangeGuidelines.end());
+    if (getSnap(GuidelineType::Yellow, mod)) ret.insert(ret.end(), f->m_yellowGuidelines.begin(), f->m_yellowGuidelines.end());
+    if (getSnap(GuidelineType::Green, mod)) ret.insert(ret.end(), f->m_greenGuidelines.begin(), f->m_greenGuidelines.end());
+    if (getSnap(GuidelineType::BPM, mod)) ret.insert(ret.end(), f->m_bpmGuidelines.begin(), f->m_bpmGuidelines.end());
+    if (getSnap(GuidelineType::BPB, mod)) ret.insert(ret.end(), f->m_bpbGuidelines.begin(), f->m_bpbGuidelines.end());
     std::ranges::sort(ret);
     return ret;
 }

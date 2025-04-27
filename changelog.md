@@ -1,4 +1,7 @@
 # Smart BPM Trigger Changelog
+## v1.1.4 (2025-04-27)
+- Fixed a bug where changing the green guideline width would sometimes change the swipe selection width
+
 ## v1.1.3 (2025-04-22)
 - Fixed a rare crash when opening levels
 - Added a gallery to the mod's about page

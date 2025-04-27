@@ -17,7 +17,6 @@ ccColor4B SmartBPMTrigger::getColor(GuidelineType type, Mod* mod) {
         case GuidelineType::Green: return get<"green-color", ccColor4B>(mod);
         case GuidelineType::BPM: return get<"beats-per-minute-color", ccColor4B>(mod);
         case GuidelineType::BPB: return get<"beats-per-bar-color", ccColor4B>(mod);
-        default: return { 0, 0, 0, 0 };
     }
 }
 
@@ -28,7 +27,6 @@ float SmartBPMTrigger::getWidth(GuidelineType type, Mod* mod) {
         case GuidelineType::Green: return get<"green-width", float>(mod);
         case GuidelineType::BPM: return get<"beats-per-minute-width", float>(mod);
         case GuidelineType::BPB: return get<"beats-per-bar-width", float>(mod);
-        default: return 0.0f;
     }
 }
 
@@ -39,18 +37,16 @@ bool SmartBPMTrigger::getSnap(GuidelineType type, Mod* mod) {
         case GuidelineType::Green: return get<"snap-green", bool>(mod);
         case GuidelineType::BPM: return get<"snap-bpm", bool>(mod);
         case GuidelineType::BPB: return get<"snap-bpb", bool>(mod);
-        default: return false;
     }
 }
 
 void SmartBPMTrigger::setSnap(GuidelineType type, bool value, Mod* mod) {
     switch (type) {
-        case GuidelineType::Orange: set<"snap-orange", bool>(value, mod); break;
-        case GuidelineType::Yellow: set<"snap-yellow", bool>(value, mod); break;
-        case GuidelineType::Green: set<"snap-green", bool>(value, mod); break;
-        case GuidelineType::BPM: set<"snap-bpm", bool>(value, mod); break;
-        case GuidelineType::BPB: set<"snap-bpb", bool>(value, mod); break;
-        default: break;
+        case GuidelineType::Orange: return set<"snap-orange", bool>(value, mod);
+        case GuidelineType::Yellow: return set<"snap-yellow", bool>(value, mod);
+        case GuidelineType::Green: return set<"snap-green", bool>(value, mod);
+        case GuidelineType::BPM: return set<"snap-bpm", bool>(value, mod);
+        case GuidelineType::BPB: return set<"snap-bpb", bool>(value, mod);
     }
 }
 

@@ -17,7 +17,7 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
         auto split = string::split(str, ",");
 
         auto hasChanged = false;
-        for (auto it = split.begin(); it < split.end() && it + 1 < split.end(); it += 2) {
+        for (auto it = split.begin(); it < split.end() - 1; it += 2) {
             auto& type = it[0];
             auto& value = it[1];
 

@@ -9,7 +9,7 @@ endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
 
-project(SmartBPMTrigger VERSION 1.1.3)
+project(SmartBPMTrigger VERSION 1.1.4)
 
 add_library(${PROJECT_NAME} SHARED
     src/classes/SBTOptionsPopup.cpp

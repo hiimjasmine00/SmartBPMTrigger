@@ -43,25 +43,12 @@ struct VariableString : public TemplateString<N + 3> {
 };
 
 enum class GuidelineType {
-    None = 0,
-    Orange = 1,
-    Yellow = 2,
-    Green = 4,
-    BPM = 8,
-    BPB = 16
+    Orange,
+    Yellow,
+    Green,
+    BPM,
+    BPB
 };
-
-inline GuidelineType operator|(GuidelineType lhs, GuidelineType rhs) {
-    return (GuidelineType)((int)lhs | (int)rhs);
-}
-
-inline GuidelineType& operator|=(GuidelineType& lhs, GuidelineType rhs) {
-    return lhs = (GuidelineType)((int)lhs | (int)rhs);
-}
-
-inline GuidelineType operator&(GuidelineType lhs, GuidelineType rhs) {
-    return (GuidelineType)((int)lhs & (int)rhs);
-}
 
 class SmartBPMTrigger {
 private:
@@ -114,6 +101,6 @@ public:
     static void setSnapDistribute(bool value, geode::Mod* mod = geode::Mod::get());
     static int spawnBPM(geode::Mod* mod = geode::Mod::get());
     static void setSpawnBPM(int value, geode::Mod* mod = geode::Mod::get());
-    static std::vector<float> getGuidelines(DrawGridLayer* layer, GuidelineType type);
+    static std::vector<float> getGuidelines(DrawGridLayer* layer, geode::Mod* mod = geode::Mod::get());
     static ColorSelectPopup* createColorPopup(const cocos2d::ccColor4B&, float, int, ColorSelectDelegate*);
 };
