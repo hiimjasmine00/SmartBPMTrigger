@@ -14,7 +14,7 @@ class $modify(SBTColorSelectPopup, ColorSelectPopup) {
         Slider* m_widthSlider;
     };
 
-    SBT_MODIFY(ColorSelectPopup)
+    SBT_MODIFY
 
     bool init(EffectGameObject* object, CCArray* objects, ColorAction* action) {
         if (!ColorSelectPopup::init(object, objects, action)) return false;

@@ -6,7 +6,7 @@
 using namespace geode::prelude;
 
 class $modify(SBTEditorUI, EditorUI) {
-    SBT_MODIFY(EditorUI)
+    SBT_MODIFY
 
     void createMoveMenu() {
         EditorUI::createMoveMenu();

@@ -3,68 +3,37 @@
 #include <Geode/binding/AudioLineGuideGameObject.hpp>
 #include <Geode/binding/DrawGridLayer.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
+#include <Geode/utils/base64.hpp>
 #include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
-// https://github.com/SpaghettDev/NamedEditorGroups/blob/067f8d6841dd3cd6bc5a2950c02e231a58ac104e/src/base64/base64.cpp#L43
-std::string base64URLDecode(const std::string& input) {
-    std::string decoded;
-    decoded.reserve((input.size() / 4) * 3);
-
-    auto val = 0;
-    auto valb = -8;
-
-    static std::string_view chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-    for (auto& c : input) {
-        if (c == '=') break;
-
-        auto i = chars.find(c);
-        if (i == std::string_view::npos) return "";
-
-        val = (val << 6) + i;
-        valb += 6;
-
-        if (valb >= 0) {
-            decoded += (val >> valb) & 255;
-            valb -= 8;
-        }
-    }
-
-    return decoded;
-}
-
 class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
-    SBT_MODIFY(LevelEditorLayer)
+    SBT_MODIFY
 
-    void createObjectsFromSetup(gd::string& setup) {
-        #ifdef GEODE_IS_ANDROID
-        std::string stringSetup = setup;
-        #else
-        auto& stringSetup = setup;
-        #endif
-
+    void createObjectsFromSetup(gd::string& gdSetup) {
+        std::string_view setup = gdSetup;
         std::string decodedText;
 
-        auto textObject = stringSetup.find(";1,914,2,-9000,3,-1590,");
-        if (textObject != std::string::npos) {
-            auto nextSemicolon = stringSetup.find(";", textObject + 1);
-            if (nextSemicolon == std::string::npos) nextSemicolon = stringSetup.size();
-            auto beforeNextSemicolon = stringSetup.substr(0, nextSemicolon);
+        auto textObject = setup.find(";1,914,2,-9000,3,-1590,");
+        if (textObject != std::string_view::npos) {
+            auto nextSemicolon = setup.find(";", textObject + 1);
+            if (nextSemicolon == std::string_view::npos) nextSemicolon = setup.size();
+            auto beforeNextSemicolon = std::string(setup, 0, nextSemicolon);
             auto base64Text = beforeNextSemicolon.find("31,", textObject + 1);
-            if (base64Text != std::string::npos) {
+            if (base64Text != std::string_view::npos) {
                 auto nextComma = beforeNextSemicolon.find(",", base64Text + 3);
-                if (nextComma == std::string::npos) nextComma = nextSemicolon;
-                decodedText = base64URLDecode(stringSetup.substr(base64Text + 3, nextComma - base64Text - 3));
+                if (nextComma == std::string_view::npos) nextComma = nextSemicolon;
+                decodedText = base64::decodeString(std::string(setup, base64Text + 3, nextComma - base64Text - 3)).unwrapOr("");
             }
         }
 
-        LevelEditorLayer::createObjectsFromSetup(setup);
+        LevelEditorLayer::createObjectsFromSetup(gdSetup);
 
         auto& audioLineObjects = m_drawGridLayer->m_audioLineObjects;
         if (audioLineObjects.empty() || decodedText.empty()) return;
 
-        auto keys = ranges::map<std::vector<int>>(audioLineObjects, [](const std::pair<int, AudioLineGuideGameObject*>& pair) {
+        auto keys = ranges::map<std::vector<int>>(audioLineObjects, [](const gd::pair<int, AudioLineGuideGameObject*>& pair) {
             return pair.first;
         });
         std::ranges::sort(keys);

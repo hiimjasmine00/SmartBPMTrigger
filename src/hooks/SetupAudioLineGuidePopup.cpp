@@ -12,7 +12,7 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
         CCLabelBMFont* m_speedLabel;
     };
 
-    SBT_MODIFY(SetupAudioLineGuidePopup)
+    SBT_MODIFY
 
     bool init(AudioLineGuideGameObject* object, CCArray* objects) {
         if (!SetupAudioLineGuidePopup::init(object, objects)) return false;

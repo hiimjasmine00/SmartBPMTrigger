@@ -10,7 +10,7 @@
 using namespace geode::prelude;
 
 class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
-    SBT_MODIFY(EditorPauseLayer)
+    SBT_MODIFY
 
     void saveLevel() {
         auto& audioLineObjects = m_editorLayer->m_drawGridLayer->m_audioLineObjects;
@@ -29,7 +29,7 @@ class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
             m_editorLayer->addToSection(saveObject);
         }
 
-        auto keys = ranges::map<std::vector<int>>(audioLineObjects, [](const std::pair<int, AudioLineGuideGameObject*>& pair) {
+        auto keys = ranges::map<std::vector<int>>(audioLineObjects, [](const gd::pair<int, AudioLineGuideGameObject*>& pair) {
             return pair.first;
         });
         std::ranges::sort(keys);

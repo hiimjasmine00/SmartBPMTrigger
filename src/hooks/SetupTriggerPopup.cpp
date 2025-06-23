@@ -6,7 +6,7 @@
 using namespace geode::prelude;
 
 class $modify(SBTSetupTriggerPopup, SetupTriggerPopup) {
-    SBT_MODIFY(SetupTriggerPopup)
+    SBT_MODIFY
 
     void valueChanged(int property, float value) {
         SetupTriggerPopup::valueChanged(property, value);

@@ -1,5 +1,5 @@
 # Smart BPM Trigger
-A mod that improves the BPM trigger in the editor.
+Editor guidelines improved.
 
 ## Features
 - Synchronized BPM triggers with level speed changes

@@ -1,4 +1,7 @@
 # Smart BPM Trigger Changelog
+## v1.1.5 (2025-06-23)
+- Ported to Geode v4.6.1
+
 ## v1.1.4 (2025-04-27)
 - Fixed a bug where changing the green guideline width would sometimes change the swipe selection width
 

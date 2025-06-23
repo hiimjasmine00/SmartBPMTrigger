@@ -1,19 +1,20 @@
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/loader/Mod.hpp>
 
-#define SBT_MODIFY(className) \
-    static void onModify(ModifyBase<ModifyDerive<SBT##className, className>>& self) { \
+#define SBT_MODIFY \
+    static void onModify(auto& self) { \
         auto mod = Mod::get(); \
         auto enabled = SmartBPMTrigger::enabled(mod); \
-        for (auto& [name, hook] : self.m_hooks) { \
+        auto& hooks = self.m_hooks; \
+        for (auto& [name, hook] : hooks) { \
             hook->setAutoEnable(enabled); \
         } \
-        SmartBPMTrigger::settingListener<"enabled", bool>([hooks = self.m_hooks](bool value) { \
+        if (!hooks.empty()) SmartBPMTrigger::settingListener<"enabled", bool>([hooks](bool value) { \
             for (auto& [name, hook] : hooks) { \
-                (void)(value ? hook->enable().mapErr([&name](const std::string& err) { \
-                    return log::error("Failed to enable {} hook: {}", name, err), err; \
-                }) : hook->disable().mapErr([&name](const std::string& err) { \
-                    return log::error("Failed to disable {} hook: {}", name, err), err; \
+                (void)(value ? hook->enable().inspectErr([&name](const std::string& err) { \
+                    log::error("Failed to enable {} hook: {}", name, err); \
+                }) : hook->disable().inspectErr([&name](const std::string& err) { \
+                    log::error("Failed to disable {} hook: {}", name, err); \
                 })); \
             } \
         }, mod); \

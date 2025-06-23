@@ -299,13 +299,12 @@ void SBTSettingsPopup::guidelineSnap(LevelEditorLayer* layer) {
 void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
     auto spawnObjects = CCArray::create();
     auto ui = layer->m_editorUI;
-    if (ui->m_selectedObject) spawnObjects->addObject(ui->m_selectedObject);
-    else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) spawnObjects->addObjectsFromArray(ui->m_selectedObjects);
-
-    for (int i = 0; i < spawnObjects->count(); i++) {
-        if (!static_cast<GameObject*>(spawnObjects->objectAtIndex(i))->isSpawnableTrigger()) {
-            spawnObjects->removeObjectAtIndex(i);
-            i--;
+    if (ui->m_selectedObject) {
+        if (ui->m_selectedObject->isSpawnableTrigger()) spawnObjects->addObject(ui->m_selectedObject);
+    }
+    else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
+        for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
+            if (object->isSpawnableTrigger()) spawnObjects->addObject(object);
         }
     }
 
@@ -317,8 +316,7 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
     auto spawnArray = CCArray::create();
     auto x = 0.0f;
     auto y = 0.0f;
-    for (int i = 0; i < spawnObjects->count(); i++) {
-        auto object = static_cast<EffectGameObject*>(spawnObjects->objectAtIndex(i));
+    for (auto object : CCArrayExt<EffectGameObject*>(spawnObjects)) {
         object->m_isSpawnTriggered = true;
         object->m_isMultiTriggered = true;
         auto realPosition = object->getRealPosition();
