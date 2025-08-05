@@ -8,10 +8,10 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
     ret->m_beats = beats;
 
     auto mod = Mod::get();
-    auto bpmColor = SmartBPMTrigger::getColor(GuidelineType::BPM, mod);
-    auto bpmWidth = SmartBPMTrigger::getWidth(GuidelineType::BPM, mod);
-    auto bpbColor = SmartBPMTrigger::getColor(GuidelineType::BPB, mod);
-    auto bpbWidth = SmartBPMTrigger::getWidth(GuidelineType::BPB, mod);
+    auto bpmColor = SmartBPMTrigger::get<"beats-per-minute-color", ccColor4B>(mod);
+    auto bpmWidth = SmartBPMTrigger::get<"beats-per-minute-width", float>(mod);
+    auto bpbColor = SmartBPMTrigger::get<"beats-per-bar-color", ccColor4B>(mod);
+    auto bpbWidth = SmartBPMTrigger::get<"beats-per-bar-width", float>(mod);
 
     if (!str.empty()) {
         auto split = string::split(str, ",");
@@ -28,12 +28,12 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
                     auto colors = string::split(value, "~");
                     for (int i = 0; i < beats && i < colors.size(); i++) {
                         auto hexColor = numFromString<uint32_t>(colors[i]).unwrapOr(0);
-                        ret->m_colors.push_back({
+                        ret->m_colors.emplace_back(
                             (uint8_t)((hexColor >> 24) & 255),
                             (uint8_t)((hexColor >> 16) & 255),
                             (uint8_t)((hexColor >> 8) & 255),
                             (uint8_t)(hexColor & 255)
-                        });
+                        );
                     }
                     break;
                 }

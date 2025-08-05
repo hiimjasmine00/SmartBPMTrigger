@@ -1,12 +1,12 @@
 {
-    "geode": "4.6.1",
+    "geode": "4.7.1",
     "gd": {
         "android": "2.2074",
         "win": "2.2074",
         "mac": "2.2074",
         "ios": "2.2074"
     },
-    "version": "v1.1.5",
+    "version": "v1.1.6",
     "id": "hiimjasmine00.smart_bpm_trigger",
     "name": "Smart BPM Trigger",
     "developer": "hiimjasmine00",

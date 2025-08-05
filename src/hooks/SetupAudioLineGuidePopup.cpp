@@ -12,7 +12,9 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
         CCLabelBMFont* m_speedLabel;
     };
 
-    SBT_MODIFY
+    static void onModify(ModifyBase<ModifyDerive<SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup>>& self) {
+        SmartBPMTrigger::modify(self);
+    }
 
     bool init(AudioLineGuideGameObject* object, CCArray* objects) {
         if (!SetupAudioLineGuidePopup::init(object, objects)) return false;
@@ -48,7 +50,7 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
 
         auto toggleArray = CCArray::create();
         GameToolbox::createToggleButton("Smart", menu_selector(SBTSetupAudioLineGuidePopup::onSmart), enabled, m_buttonMenu,
-            CCDirector::get()->getWinSize() / 2.0f + CCPoint { m_width / 2.0f - 85.0f, 25.0f - m_height / 2.0f },
+            SmartBPMTrigger::getDirector()->getWinSize() / 2.0f + CCPoint { m_width / 2.0f - 85.0f, 25.0f - m_height / 2.0f },
             this, m_mainLayer, 0.7f, 0.35f, 110.0f, { 0.0f, 4.0f }, "bigFont.fnt", true, 0, toggleArray);
         static_cast<CCNode*>(toggleArray->objectAtIndex(0))->setID("smart-toggle"_spr);
         static_cast<CCNode*>(toggleArray->objectAtIndex(1))->setID("smart-label"_spr);
@@ -73,7 +75,7 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
 
     void toggleState(bool state) {
         auto f = m_fields.self();
-        auto center = CCDirector::get()->getWinSize().height / 2.0f - m_height / 2.0f;
+        auto center = SmartBPMTrigger::getDirector()->getWinSize().height / 2.0f - m_height / 2.0f;
         auto speedButton = static_cast<CCMenuItemSpriteExtra*>(m_speedSprite->getParent());
         if (m_gameObject) {
             f->m_speedLabel->setString(state ? "Settings" : "Speed:");

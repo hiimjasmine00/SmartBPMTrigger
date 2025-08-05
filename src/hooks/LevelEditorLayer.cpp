@@ -4,12 +4,13 @@
 #include <Geode/binding/DrawGridLayer.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/utils/base64.hpp>
-#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
 class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
-    SBT_MODIFY
+    static void onModify(ModifyBase<ModifyDerive<SBTLevelEditorLayer, LevelEditorLayer>>& self) {
+        SmartBPMTrigger::modify(self);
+    }
 
     void createObjectsFromSetup(gd::string& gdSetup) {
         std::string_view setup = gdSetup;
@@ -33,9 +34,10 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
         auto& audioLineObjects = m_drawGridLayer->m_audioLineObjects;
         if (audioLineObjects.empty() || decodedText.empty()) return;
 
-        auto keys = ranges::map<std::vector<int>>(audioLineObjects, [](const gd::pair<int, AudioLineGuideGameObject*>& pair) {
-            return pair.first;
-        });
+        std::vector<int> keys;
+        for (auto& pair : audioLineObjects) {
+            keys.push_back(pair.first);
+        }
         std::ranges::sort(keys);
 
         auto splitData = string::split(decodedText, ";");

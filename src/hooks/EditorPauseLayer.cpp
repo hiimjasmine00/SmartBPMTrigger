@@ -5,12 +5,13 @@
 #include <Geode/binding/LevelEditorLayer.hpp>
 #include <Geode/binding/TextGameObject.hpp>
 #include <Geode/modify/EditorPauseLayer.hpp>
-#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
 class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
-    SBT_MODIFY
+    static void onModify(ModifyBase<ModifyDerive<SBTEditorPauseLayer, EditorPauseLayer>>& self) {
+        SmartBPMTrigger::modify(self);
+    }
 
     void saveLevel() {
         auto& audioLineObjects = m_editorLayer->m_drawGridLayer->m_audioLineObjects;
@@ -29,18 +30,29 @@ class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
             m_editorLayer->addToSection(saveObject);
         }
 
-        auto keys = ranges::map<std::vector<int>>(audioLineObjects, [](const gd::pair<int, AudioLineGuideGameObject*>& pair) {
-            return pair.first;
-        });
+        std::vector<int> keys;
+        for (auto& pair : audioLineObjects) {
+            keys.push_back(pair.first);
+        }
         std::ranges::sort(keys);
 
+        #ifdef GEODE_IS_ANDROID
         std::string saveString;
-        for (auto& k : keys) {
+        for (auto k : keys) {
             if (!saveString.empty()) saveString += ';';
             if (auto triggerData = static_cast<SBTTriggerData*>(audioLineObjects[k]->getUserObject("trigger-data"_spr)))
                 saveString += triggerData->getSaveString();
         }
         saveObject->m_text = saveString;
+        #else
+        auto& saveString = saveObject->m_text;
+        saveString.clear();
+        for (auto k : keys) {
+            if (!saveString.empty()) saveString += ';';
+            if (auto triggerData = static_cast<SBTTriggerData*>(audioLineObjects[k]->getUserObject("trigger-data"_spr)))
+                saveString += triggerData->getSaveString();
+        }
+        #endif
 
         EditorPauseLayer::saveLevel();
     }

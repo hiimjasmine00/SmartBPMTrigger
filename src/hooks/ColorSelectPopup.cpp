@@ -14,7 +14,9 @@ class $modify(SBTColorSelectPopup, ColorSelectPopup) {
         Slider* m_widthSlider;
     };
 
-    SBT_MODIFY
+    static void onModify(ModifyBase<ModifyDerive<SBTColorSelectPopup, ColorSelectPopup>>& self) {
+        SmartBPMTrigger::modify(self);
+    }
 
     bool init(EffectGameObject* object, CCArray* objects, ColorAction* action) {
         if (!ColorSelectPopup::init(object, objects, action)) return false;
@@ -25,7 +27,7 @@ class $modify(SBTColorSelectPopup, ColorSelectPopup) {
         m_originalColorSprite->setOpacity(action->m_fromOpacity);
         m_currentColorSprite->setOpacity(action->m_fromOpacity);
 
-        auto center = CCDirector::get()->getWinSize() / 2.0f;
+        auto center = SmartBPMTrigger::getDirector()->getWinSize() / 2.0f;
 
         f->m_opacityLabel = CCLabelBMFont::create(fmt::format("Opacity: {}", action->m_fromOpacity).c_str(), "goldFont.fnt");
         f->m_opacityLabel->setPosition(center + CCPoint { 150.0f, -15.0f });

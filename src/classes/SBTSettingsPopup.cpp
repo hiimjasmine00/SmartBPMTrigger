@@ -7,7 +7,6 @@
 #include <Geode/binding/UndoObject.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/TextInput.hpp>
-#include <Geode/utils/ranges.hpp>
 
 using namespace geode::prelude;
 
@@ -40,15 +39,15 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_mainLayer->addChild(snapLabel);
 
     auto distributeToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::setSnapDistribute(!sender->m_toggled);
+        SmartBPMTrigger::set<"snap-distribute", bool>(!sender->m_toggled);
         sender->m_toggled = !sender->m_toggled;
     });
     distributeToggle->setPosition({ 30.0f, 125.0f });
-    distributeToggle->toggle(SmartBPMTrigger::snapDistribute(mod));
+    distributeToggle->toggle(SmartBPMTrigger::get<"snap-distribute", bool>(mod));
     distributeToggle->setID("distribute-toggle");
     m_buttonMenu->addChild(distributeToggle);
 
-    m_listeners.emplace(SmartBPMTrigger::settingListener<"snap-distribute", bool>([distributeToggle](bool value) {
+    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-distribute", [distributeToggle](bool value) {
         distributeToggle->toggle(value);
     }, mod));
 
@@ -60,15 +59,15 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_mainLayer->addChild(distributeLabel);
 
     auto orangeToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::setSnap(GuidelineType::Orange, !sender->m_toggled);
+        SmartBPMTrigger::set<"snap-orange", bool>(!sender->m_toggled);
         sender->m_toggled = !sender->m_toggled;
     });
     orangeToggle->setPosition({ 120.0f, 125.0f });
-    orangeToggle->toggle(SmartBPMTrigger::getSnap(GuidelineType::Orange, mod));
+    orangeToggle->toggle(SmartBPMTrigger::get<"snap-orange", bool>(mod));
     orangeToggle->setID("orange-toggle");
     m_buttonMenu->addChild(orangeToggle);
 
-    m_listeners.emplace(SmartBPMTrigger::settingListener<"snap-orange", bool>([orangeToggle](bool value) {
+    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-orange", [orangeToggle](bool value) {
         orangeToggle->toggle(value);
     }, mod));
 
@@ -80,15 +79,15 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_mainLayer->addChild(orangeLabel);
 
     auto yellowToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::setSnap(GuidelineType::Yellow, !sender->m_toggled);
+        SmartBPMTrigger::set<"snap-yellow", bool>(!sender->m_toggled);
         sender->m_toggled = !sender->m_toggled;
     });
     yellowToggle->setPosition({ 30.0f, 95.0f });
-    yellowToggle->toggle(SmartBPMTrigger::getSnap(GuidelineType::Yellow, mod));
+    yellowToggle->toggle(SmartBPMTrigger::get<"snap-yellow", bool>(mod));
     yellowToggle->setID("yellow-toggle");
     m_buttonMenu->addChild(yellowToggle);
 
-    m_listeners.emplace(SmartBPMTrigger::settingListener<"snap-yellow", bool>([yellowToggle](bool value) {
+    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-yellow", [yellowToggle](bool value) {
         yellowToggle->toggle(value);
     }, mod));
 
@@ -100,15 +99,15 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_mainLayer->addChild(yellowLabel);
 
     auto greenToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::setSnap(GuidelineType::Green, !sender->m_toggled);
+        SmartBPMTrigger::set<"snap-green", bool>(!sender->m_toggled);
         sender->m_toggled = !sender->m_toggled;
     });
     greenToggle->setPosition({ 120.0f, 95.0f });
-    greenToggle->toggle(SmartBPMTrigger::getSnap(GuidelineType::Green, mod));
+    greenToggle->toggle(SmartBPMTrigger::get<"snap-green", bool>(mod));
     greenToggle->setID("green-toggle");
     m_buttonMenu->addChild(greenToggle);
 
-    m_listeners.emplace(SmartBPMTrigger::settingListener<"snap-green", bool>([greenToggle](bool value) {
+    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-green", [greenToggle](bool value) {
         greenToggle->toggle(value);
     }, mod));
 
@@ -120,15 +119,15 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_mainLayer->addChild(greenLabel);
 
     auto bpmToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::setSnap(GuidelineType::BPM, !sender->m_toggled);
+        SmartBPMTrigger::set<"snap-bpm", bool>(!sender->m_toggled);
         sender->m_toggled = !sender->m_toggled;
     });
     bpmToggle->setPosition({ 30.0f, 65.0f });
-    bpmToggle->toggle(SmartBPMTrigger::getSnap(GuidelineType::BPM, mod));
+    bpmToggle->toggle(SmartBPMTrigger::get<"snap-bpm", bool>(mod));
     bpmToggle->setID("bpm-toggle");
     m_buttonMenu->addChild(bpmToggle);
 
-    m_listeners.emplace(SmartBPMTrigger::settingListener<"snap-bpm", bool>([bpmToggle](bool value) {
+    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-bpm", [bpmToggle](bool value) {
         bpmToggle->toggle(value);
     }, mod));
 
@@ -140,15 +139,15 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_mainLayer->addChild(bpmLabel);
 
     auto bpbToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::setSnap(GuidelineType::BPB, !sender->m_toggled);
+        SmartBPMTrigger::set<"snap-bpb", bool>(!sender->m_toggled);
         sender->m_toggled = !sender->m_toggled;
     });
     bpbToggle->setPosition({ 120.0f, 65.0f });
-    bpbToggle->toggle(SmartBPMTrigger::getSnap(GuidelineType::BPB, mod));
+    bpbToggle->toggle(SmartBPMTrigger::get<"snap-bpb", bool>(mod));
     bpbToggle->setID("bpb-toggle");
     m_buttonMenu->addChild(bpbToggle);
 
-    m_listeners.emplace(SmartBPMTrigger::settingListener<"snap-bpb", bool>([bpbToggle](bool value) {
+    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-bpb", [bpbToggle](bool value) {
         bpbToggle->toggle(value);
     }, mod));
 
@@ -165,13 +164,13 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     loopLabel->setID("loop-label");
     m_mainLayer->addChild(loopLabel);
 
-    auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
+    auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
 
     auto loopBPMInput = TextInput::create(70.0f, "BPM");
     loopBPMInput->setPosition({ 300.0f, 100.0f });
     loopBPMInput->setString(fmt::to_string(spawnBPM));
     loopBPMInput->setCallback([loopBPMInput](const std::string& str) {
-        if (auto value = numFromString<int>(str)) SmartBPMTrigger::setSpawnBPM(value.unwrap());
+        if (auto value = numFromString<int>(str)) SmartBPMTrigger::set<"spawn-bpm", int>(value.unwrap());
         loopBPMInput->setString(str);
     });
     loopBPMInput->setMaxCharCount(3);
@@ -185,15 +184,15 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     loopBPMLabel->setID("loop-bpm-label");
     m_mainLayer->addChild(loopBPMLabel);
 
-    m_listeners.emplace(SmartBPMTrigger::settingListener<"spawn-bpm", int>([loopBPMInput, loopBPMLabel](int value) {
+    m_listeners.emplace(SmartBPMTrigger::listen<int>("spawn-bpm", [loopBPMInput, loopBPMLabel](int value) {
         loopBPMInput->setString(fmt::to_string(value));
         loopBPMLabel->setString(fmt::format("{} BPM", value).c_str());
     }, mod));
 
     auto bpmSmallLeftButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_leftBtn_001.png", 1.0f, [](auto) {
         auto mod = Mod::get();
-        auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
-        if (spawnBPM > 1) SmartBPMTrigger::setSpawnBPM(spawnBPM - 1, mod);
+        auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
+        if (spawnBPM > 1) SmartBPMTrigger::set<"spawn-bpm", int>(spawnBPM - 1, mod);
     });
     bpmSmallLeftButton->setPosition({ 250.0f, 100.0f });
     bpmSmallLeftButton->setID("bpm-small-left-button");
@@ -201,8 +200,8 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
 
     auto bpmSmallRightButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_rightBtn_001.png", 1.0f, [](auto) {
         auto mod = Mod::get();
-        auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
-        if (spawnBPM < 999) SmartBPMTrigger::setSpawnBPM(spawnBPM + 1, mod);
+        auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
+        if (spawnBPM < 999) SmartBPMTrigger::set<"spawn-bpm", int>(spawnBPM + 1, mod);
     });
     bpmSmallRightButton->setPosition({ 350.0f, 100.0f });
     bpmSmallRightButton->setID("bpm-small-right-button");
@@ -210,8 +209,8 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
 
     auto bpmBigLeftButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_leftBtn2_001.png", 0.8f, [](auto) {
         auto mod = Mod::get();
-        auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
-        if (spawnBPM > 1) SmartBPMTrigger::setSpawnBPM(std::max(spawnBPM - 10, 1), mod);
+        auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
+        if (spawnBPM > 1) SmartBPMTrigger::set<"spawn-bpm", int>(std::max(spawnBPM - 10, 1), mod);
     });
     bpmBigLeftButton->setPosition({ 230.0f, 100.0f });
     bpmBigLeftButton->setID("bpm-big-left-button");
@@ -219,8 +218,8 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
 
     auto bpmBigRightButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_rightBtn2_001.png", 0.8f, [](auto) {
         auto mod = Mod::get();
-        auto spawnBPM = SmartBPMTrigger::spawnBPM(mod);
-        if (spawnBPM < 999) SmartBPMTrigger::setSpawnBPM(std::min(spawnBPM + 10, 999), mod);
+        auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
+        if (spawnBPM < 999) SmartBPMTrigger::set<"spawn-bpm", int>(std::min(spawnBPM + 10, 999), mod);
     });
     bpmBigRightButton->setPosition({ 370.0f, 100.0f });
     bpmBigRightButton->setID("bpm-big-right-button");
@@ -278,7 +277,7 @@ void SBTSettingsPopup::guidelineSnap(LevelEditorLayer* layer) {
     }
     else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
         ui->createUndoObject(UndoCommand::Transform, false);
-        if (SmartBPMTrigger::snapDistribute(mod)) {
+        if (SmartBPMTrigger::get<"snap-distribute", bool>(mod)) {
             for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
                 auto x = object->getPositionX();
                 std::ranges::sort(guidelines, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
@@ -346,6 +345,7 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
     layer->removeSpecial(mainTrigger);
     layer->addSpecial(mainTrigger);
 
+    auto mod = Mod::get();
     auto time = layer->timeForPos({ x, 0.0f }, 0, 0, false, 0);
     auto delay = 0.0f;
     auto sum = 0.0f;
@@ -371,7 +371,7 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
                     groupID = layer->getNextFreeGroupID(nullptr);
                     delay = diff - sum;
                 }
-                else delay = std::max(60.0f / SmartBPMTrigger::spawnBPM() - sum, 0.0f);
+                else delay = std::max(60.0f / SmartBPMTrigger::get<"spawn-bpm", int>(mod) - sum, 0.0f);
                 auto spawnTrigger = static_cast<SpawnTriggerGameObject*>(ui->createObject(1268, { object->getRealPosition().x, y + 60.0f }));
                 if (spawnTrigger->addToGroup(oldID) == 1) layer->addToGroup(spawnTrigger, oldID, false);
                 spawnTrigger->m_spawnDelay = delay;

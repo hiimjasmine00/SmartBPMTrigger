@@ -1,4 +1,7 @@
 # Smart BPM Trigger Changelog
+## v1.1.6 (2025-08-04)
+- Added compatibility with the mod "Good Grid" by Alphalaneous
+
 ## v1.1.5 (2025-06-23)
 - Ported to Geode v4.6.1
 

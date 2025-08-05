@@ -6,7 +6,9 @@
 using namespace geode::prelude;
 
 class $modify(SBTEditorUI, EditorUI) {
-    SBT_MODIFY
+    static void onModify(ModifyBase<ModifyDerive<SBTEditorUI, EditorUI>>& self) {
+        SmartBPMTrigger::modify(self);
+    }
 
     void createMoveMenu() {
         EditorUI::createMoveMenu();

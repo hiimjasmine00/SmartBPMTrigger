@@ -72,5 +72,5 @@ void SBTOptionsPopup::colorSelectClosed(CCNode* node) {
     auto sprite = static_cast<CCNodeRGBA*>(static_cast<CCMenuItemSprite*>(m_buttonMenu->getChildByTag(index))->getNormalImage());
     sprite->setColor(action->m_fromColor);
     sprite->setOpacity(action->m_fromOpacity);
-    static_cast<CCLabelBMFont*>(sprite->getChildren()->objectAtIndex(0))->setString(fmt::format("{:.02f}", action->m_toOpacity).c_str());
+    sprite->getChildByIndex<CCLabelBMFont>(0)->setString(fmt::format("{:.02f}", action->m_toOpacity).c_str());
 }
