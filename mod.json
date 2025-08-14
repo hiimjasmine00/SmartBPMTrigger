@@ -1,12 +1,12 @@
 {
-    "geode": "4.7.1",
+    "geode": "4.7.0",
     "gd": {
         "android": "2.2074",
         "win": "2.2074",
         "mac": "2.2074",
         "ios": "2.2074"
     },
-    "version": "v1.1.6",
+    "version": "v1.2.0",
     "id": "hiimjasmine00.smart_bpm_trigger",
     "name": "Smart BPM Trigger",
     "developer": "hiimjasmine00",
@@ -188,12 +188,15 @@
         "spawn-bpm": {
             "name": "BPM",
             "description": "The BPM of the spawn loop.",
-            "type": "int",
+            "type": "float",
             "enable-if": "enabled",
             "min": 1,
-            "max": 999,
+            "max": 1000,
             "default": 120
         }
+    },
+    "dependencies": {
+        "alphalaneous.good_grid": ">=v1.1.0"
     },
     "links": {
         "community": "https://discord.gg/QVKmbvBXA7",

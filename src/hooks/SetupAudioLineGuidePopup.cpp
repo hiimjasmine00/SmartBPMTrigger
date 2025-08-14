@@ -1,5 +1,6 @@
 #include "../SmartBPMTrigger.hpp"
 #include "../classes/SBTOptionsPopup.hpp"
+#include "../classes/SBTTriggerData.hpp"
 #include <Geode/binding/AudioLineGuideGameObject.hpp>
 #include <Geode/binding/GameToolbox.hpp>
 #include <Geode/binding/SelectSettingLayer.hpp>
@@ -13,7 +14,7 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
     };
 
     static void onModify(ModifyBase<ModifyDerive<SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup>>& self) {
-        SmartBPMTrigger::modify(self);
+        SmartBPMTrigger::modify(self.m_hooks);
     }
 
     bool init(AudioLineGuideGameObject* object, CCArray* objects) {
@@ -80,7 +81,7 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
         if (m_gameObject) {
             f->m_speedLabel->setString(state ? "Settings" : "Speed:");
             f->m_speedLabel->setPositionY(center + 70.0f - (state * 15.0f));
-            m_speedSprite->setDisplayFrame(CCSpriteFrameCache::get()->spriteFrameByName(state ? "GJ_optionsBtn_001.png" :
+            m_speedSprite->setDisplayFrame(SmartBPMTrigger::getSpriteFrameCache()->spriteFrameByName(state ? "GJ_optionsBtn_001.png" :
                 SelectSettingLayer::frameForValue(SelectSettingType::StartingSpeed, getValue(499)).c_str()));
             speedButton->setPositionY(center + 36.0f - (state * 7.0f) - m_buttonMenu->getPositionY());
             speedButton->updateSprite();

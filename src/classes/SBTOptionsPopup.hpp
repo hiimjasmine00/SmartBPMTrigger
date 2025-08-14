@@ -1,16 +1,22 @@
-#include "SBTTriggerData.hpp"
-#include <Geode/binding/ColorSelectDelegate.hpp>
+#include "SBTColorWidget.hpp"
 #include <Geode/ui/Popup.hpp>
 
-class SBTOptionsPopup : public geode::Popup<SBTTriggerData*>, ColorSelectDelegate {
+class SBTTriggerData;
+
+class SBTOptionsPopup : public geode::Popup<SBTTriggerData*> {
 protected:
+    SBTTriggerData* m_triggerData;
+    geode::Ref<SBTColorWidget> m_colorWidget;
+    cocos2d::CCMenu* m_barSpriteMenu;
+    cocos2d::CCSprite* m_barSprite;
+    cocos2d::CCMenu* m_resetMenu;
     std::vector<cocos2d::ccColor4B> m_colors;
     std::vector<float> m_widths;
-    bool m_changed;
+    int m_index;
 
     bool setup(SBTTriggerData*) override;
+    void onClose(cocos2d::CCObject*) override;
+    void closeBar();
 public:
-    static SBTOptionsPopup* create(SBTTriggerData*);
-
-    void colorSelectClosed(CCNode*) override;
+    static SBTOptionsPopup* create(SBTTriggerData* triggerData);
 };

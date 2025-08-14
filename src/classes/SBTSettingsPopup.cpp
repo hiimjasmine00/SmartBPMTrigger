@@ -4,15 +4,15 @@
 #include <Geode/binding/EditorUI.hpp>
 #include <Geode/binding/LevelEditorLayer.hpp>
 #include <Geode/binding/SpawnTriggerGameObject.hpp>
+#include <Geode/binding/Slider.hpp>
 #include <Geode/binding/UndoObject.hpp>
-#include <Geode/ui/GeodeUI.hpp>
 #include <Geode/ui/TextInput.hpp>
 
 using namespace geode::prelude;
 
 SBTSettingsPopup* SBTSettingsPopup::create(LevelEditorLayer* layer) {
     auto ret = new SBTSettingsPopup();
-    if (ret->initAnchored(400.0f, 200.0f, layer)) {
+    if (ret->initAnchored(400.0f, 290.0f, layer)) {
         ret->autorelease();
         return ret;
     }
@@ -30,356 +30,303 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_closeBtn->setID("close-button");
     m_noElasticity = true;
 
-    auto mod = Mod::get();
+    m_colorWidget = SBTColorWidget::create({ 0, 0, 0, 0 }, 0.0f, [this](const ccColor4B& color, float width) {
+        m_barSprite->setColor({ color.r, color.g, color.b });
+        m_barSprite->setOpacity(color.a);
+        m_barSprite->setScaleX(width / 5.0f);
+        m_barButtonSprite->setColor({ color.r, color.g, color.b });
+        m_barButtonSprite->setOpacity(color.a);
+        m_barButtonSprite->setScaleX(width / 5.0f);
+        m_colorSetting->setValue(color);
+        m_widthSetting->setValue(width);
+    });
+    m_colorWidget->setPosition({ 290.0f, 130.0f });
+    m_colorWidget->setScale(0.9f);
+    m_colorWidget->setID("color-widget");
+
+    auto squareTexture = SmartBPMTrigger::getTextureCache()->addImage(GEODE_MOD_ID "/square.png", false);
+    auto squareSize = squareTexture ? squareTexture->m_tContentSize : CCSize { 2.0f, 2.0f };
+    squareSize /= SmartBPMTrigger::getDirector()->getContentScaleFactor();
+    CCRect squareRect = { { 0.0f, 0.0f }, squareSize };
+
+    m_barSprite = CCSprite::createWithTexture(squareTexture, squareRect);
+    m_barSprite->setPosition({ 90.0f, 135.0f });
+    m_barSprite->setScaleY(250.0f / squareSize.height);
+    m_barSprite->setID("bar-sprite");
+
+    auto settingsLabel = CCLabelBMFont::create("Guideline Settings", "goldFont.fnt");
+    settingsLabel->setPosition({ 200.0f, 250.0f });
+    settingsLabel->setScale(0.6f);
+    settingsLabel->setID("settings-label");
+    m_mainLayer->addChild(settingsLabel);
+
+    auto settingsMenu = CCMenu::create();
+    settingsMenu->setPosition({ 200.0f, 215.0f });
+    settingsMenu->setContentSize({ 400.0f, 50.0f });
+    settingsMenu->setLayout(RowLayout::create()->setGap(45.0f)->setAutoScale(false));
+    settingsMenu->setID("settings-menu");
+    m_mainLayer->addChild(settingsMenu);
+
+    constexpr std::array guidelineSettings = {
+        std::make_tuple("orange-color", "orange-width", "Orange", "orange"),
+        std::make_tuple("yellow-color", "yellow-width", "Yellow", "yellow"),
+        std::make_tuple("green-color", "green-width", "Green", "green"),
+        std::make_tuple("beats-per-minute-color", "beats-per-minute-width", "BPM", "bpm"),
+        std::make_tuple("beats-per-bar-color", "beats-per-bar-width", "BPB", "bpb")
+    };
+
+    for (auto& [colorKey, widthKey, label, shortName] : guidelineSettings) {
+        auto guidelineMenu = CCMenu::create();
+        guidelineMenu->setContentSize({ squareSize.width, 50.0f });
+        guidelineMenu->setID(fmt::format("{}-menu", shortName));
+        settingsMenu->addChild(guidelineMenu);
+
+        auto colorSetting = SmartBPMTrigger::getSetting<ccColor4B>(colorKey);
+        auto widthSetting = SmartBPMTrigger::getSetting<float>(widthKey);
+
+        auto barSprite = CCSprite::createWithTexture(squareTexture, squareRect);
+        barSprite->setScaleX(widthSetting->getValue() / 5.0f);
+        barSprite->setScaleY(40.0f / squareSize.height);
+        auto barColor = colorSetting->getValue();
+        barSprite->setColor({ barColor.r, barColor.g, barColor.b });
+        barSprite->setOpacity(barColor.a);
+
+        auto barButton = CCMenuItemExt::createSpriteExtra(barSprite, [this, barSprite, colorSetting, widthSetting, label](auto) {
+            setTitle(fmt::format("{} Guidelines", label));
+            showPicker(barSprite, colorSetting, widthSetting);
+        });
+        barButton->setPosition({ squareSize.width / 2.0f, 20.0f });
+        barButton->setContentSize({ squareSize.width, 40.0f });
+        barSprite->setPosition(barButton->getPosition());
+        barButton->setID(fmt::format("{}-button", shortName));
+        guidelineMenu->addChild(barButton);
+
+        auto guidelineLabel = CCLabelBMFont::create(label, "bigFont.fnt");
+        guidelineLabel->setPosition(barSprite->getPosition() + CCPoint { 0.0f, 27.0f });
+        guidelineLabel->setScale(0.3f);
+        guidelineLabel->setID(fmt::format("{}-label", shortName));
+        guidelineMenu->addChild(guidelineLabel);
+    }
+
+    settingsMenu->updateLayout();
 
     auto snapLabel = CCLabelBMFont::create("Guideline Snap", "goldFont.fnt");
-    snapLabel->setPosition({ 100.0f, 155.0f });
+    snapLabel->setPosition({ 200.0f, 180.0f });
     snapLabel->setScale(0.6f);
     snapLabel->setID("snap-label");
     m_mainLayer->addChild(snapLabel);
 
-    auto distributeToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::set<"snap-distribute", bool>(!sender->m_toggled);
-        sender->m_toggled = !sender->m_toggled;
-    });
-    distributeToggle->setPosition({ 30.0f, 125.0f });
-    distributeToggle->toggle(SmartBPMTrigger::get<"snap-distribute", bool>(mod));
-    distributeToggle->setID("distribute-toggle");
-    m_buttonMenu->addChild(distributeToggle);
+    auto snapMenu = CCMenu::create();
+    snapMenu->setPosition({ 200.0f, 145.0f });
+    snapMenu->setContentSize({ 400.0f, 35.0f });
+    snapMenu->setLayout(RowLayout::create()->setGap(20.0f));
+    snapMenu->setID("snap-toggles-menu");
+    m_mainLayer->addChild(snapMenu);
 
-    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-distribute", [distributeToggle](bool value) {
-        distributeToggle->toggle(value);
-    }, mod));
+    constexpr std::array snapToggles = {
+        std::make_pair("snap-distribute", "Distribute"),
+        std::make_pair("snap-orange", "Orange"),
+        std::make_pair("snap-yellow", "Yellow"),
+        std::make_pair("snap-green", "Green"),
+        std::make_pair("snap-bpm", "BPM"),
+        std::make_pair("snap-bpb", "BPB")
+    };
 
-    auto distributeLabel = CCLabelBMFont::create("Distribute", "bigFont.fnt");
-    distributeLabel->setPosition({ 50.0f, 125.0f });
-    distributeLabel->setScale(0.3f);
-    distributeLabel->setAnchorPoint({ 0.0f, 0.5f });
-    distributeLabel->setID("distribute-label");
-    m_mainLayer->addChild(distributeLabel);
+    auto& snapSize = SmartBPMTrigger::getSpriteFrameCache()->spriteFrameByName("GJ_checkOn_001.png")->getOriginalSize();
+    for (auto& [settingName, label] : snapToggles) {
+        auto snapNode = CCMenu::create();
+        snapNode->setContentSize({ snapSize.width, 35.0f });
+        snapNode->setID(fmt::format("{}-menu", settingName));
+        snapMenu->addChild(snapNode);
 
-    auto orangeToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::set<"snap-orange", bool>(!sender->m_toggled);
-        sender->m_toggled = !sender->m_toggled;
-    });
-    orangeToggle->setPosition({ 120.0f, 125.0f });
-    orangeToggle->toggle(SmartBPMTrigger::get<"snap-orange", bool>(mod));
-    orangeToggle->setID("orange-toggle");
-    m_buttonMenu->addChild(orangeToggle);
+        auto snapSetting = SmartBPMTrigger::getSetting<bool>(settingName);
+        auto snapToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [snapSetting](CCMenuItemToggler* sender) {
+            snapSetting->setValue(!sender->m_toggled);
+            sender->m_toggled = !sender->m_toggled;
+        });
+        snapToggle->setPosition(snapSize / 2.0f);
+        snapToggle->toggle(snapSetting->getValue());
+        snapToggle->setID(fmt::format("{}-toggle", settingName));
+        snapNode->addChild(snapToggle);
 
-    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-orange", [orangeToggle](bool value) {
-        orangeToggle->toggle(value);
-    }, mod));
+        auto snapLabel = CCLabelBMFont::create(label, "bigFont.fnt");
+        snapLabel->setPosition(snapToggle->getPosition() + CCPoint { 0.0f, snapSize.height / 2.0f + 2.0f });
+        snapLabel->setScale(0.3f);
+        snapLabel->setID(fmt::format("{}-label", settingName));
+        snapNode->addChild(snapLabel);
+    }
 
-    auto orangeLabel = CCLabelBMFont::create("Orange", "bigFont.fnt");
-    orangeLabel->setPosition({ 140.0f, 125.0f });
-    orangeLabel->setScale(0.4f);
-    orangeLabel->setAnchorPoint({ 0.0f, 0.5f });
-    orangeLabel->setID("orange-label");
-    m_mainLayer->addChild(orangeLabel);
-
-    auto yellowToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::set<"snap-yellow", bool>(!sender->m_toggled);
-        sender->m_toggled = !sender->m_toggled;
-    });
-    yellowToggle->setPosition({ 30.0f, 95.0f });
-    yellowToggle->toggle(SmartBPMTrigger::get<"snap-yellow", bool>(mod));
-    yellowToggle->setID("yellow-toggle");
-    m_buttonMenu->addChild(yellowToggle);
-
-    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-yellow", [yellowToggle](bool value) {
-        yellowToggle->toggle(value);
-    }, mod));
-
-    auto yellowLabel = CCLabelBMFont::create("Yellow", "bigFont.fnt");
-    yellowLabel->setPosition({ 50.0f, 95.0f });
-    yellowLabel->setScale(0.4f);
-    yellowLabel->setAnchorPoint({ 0.0f, 0.5f });
-    yellowLabel->setID("yellow-label");
-    m_mainLayer->addChild(yellowLabel);
-
-    auto greenToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::set<"snap-green", bool>(!sender->m_toggled);
-        sender->m_toggled = !sender->m_toggled;
-    });
-    greenToggle->setPosition({ 120.0f, 95.0f });
-    greenToggle->toggle(SmartBPMTrigger::get<"snap-green", bool>(mod));
-    greenToggle->setID("green-toggle");
-    m_buttonMenu->addChild(greenToggle);
-
-    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-green", [greenToggle](bool value) {
-        greenToggle->toggle(value);
-    }, mod));
-
-    auto greenLabel = CCLabelBMFont::create("Green", "bigFont.fnt");
-    greenLabel->setPosition({ 140.0f, 95.0f });
-    greenLabel->setScale(0.4f);
-    greenLabel->setAnchorPoint({ 0.0f, 0.5f });
-    greenLabel->setID("green-label");
-    m_mainLayer->addChild(greenLabel);
-
-    auto bpmToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::set<"snap-bpm", bool>(!sender->m_toggled);
-        sender->m_toggled = !sender->m_toggled;
-    });
-    bpmToggle->setPosition({ 30.0f, 65.0f });
-    bpmToggle->toggle(SmartBPMTrigger::get<"snap-bpm", bool>(mod));
-    bpmToggle->setID("bpm-toggle");
-    m_buttonMenu->addChild(bpmToggle);
-
-    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-bpm", [bpmToggle](bool value) {
-        bpmToggle->toggle(value);
-    }, mod));
-
-    auto bpmLabel = CCLabelBMFont::create("BPM", "bigFont.fnt");
-    bpmLabel->setPosition({ 50.0f, 65.0f });
-    bpmLabel->setScale(0.5f);
-    bpmLabel->setAnchorPoint({ 0.0f, 0.5f });
-    bpmLabel->setID("bpm-label");
-    m_mainLayer->addChild(bpmLabel);
-
-    auto bpbToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [](CCMenuItemToggler* sender) {
-        SmartBPMTrigger::set<"snap-bpb", bool>(!sender->m_toggled);
-        sender->m_toggled = !sender->m_toggled;
-    });
-    bpbToggle->setPosition({ 120.0f, 65.0f });
-    bpbToggle->toggle(SmartBPMTrigger::get<"snap-bpb", bool>(mod));
-    bpbToggle->setID("bpb-toggle");
-    m_buttonMenu->addChild(bpbToggle);
-
-    m_listeners.emplace(SmartBPMTrigger::listen<bool>("snap-bpb", [bpbToggle](bool value) {
-        bpbToggle->toggle(value);
-    }, mod));
-
-    auto bpbLabel = CCLabelBMFont::create("BPB", "bigFont.fnt");
-    bpbLabel->setPosition({ 140.0f, 65.0f });
-    bpbLabel->setScale(0.5f);
-    bpbLabel->setAnchorPoint({ 0.0f, 0.5f });
-    bpbLabel->setID("bpb-label");
-    m_mainLayer->addChild(bpbLabel);
+    snapMenu->updateLayout();
 
     auto loopLabel = CCLabelBMFont::create("BPM Spawn Loop", "goldFont.fnt");
-    loopLabel->setPosition({ 300.0f, 155.0f });
+    loopLabel->setPosition({ 200.0f, 120.0f });
     loopLabel->setScale(0.6f);
     loopLabel->setID("loop-label");
     m_mainLayer->addChild(loopLabel);
 
-    auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
+    auto spawnBPM = SmartBPMTrigger::getSetting<double>("spawn-bpm");
+
+    auto loopBPMSlider = Slider::create(nullptr, nullptr, 0.8f);
+    loopBPMSlider->setPosition({ 200.0f, 60.0f });
+    loopBPMSlider->setValue(spawnBPM->getValue() / 1000.0);
+    loopBPMSlider->setID("loop-bpm-slider");
+    m_mainLayer->addChild(loopBPMSlider);
 
     auto loopBPMInput = TextInput::create(70.0f, "BPM");
-    loopBPMInput->setPosition({ 300.0f, 100.0f });
-    loopBPMInput->setString(fmt::to_string(spawnBPM));
-    loopBPMInput->setCallback([loopBPMInput](const std::string& str) {
-        if (auto value = numFromString<int>(str)) SmartBPMTrigger::set<"spawn-bpm", int>(value.unwrap());
-        loopBPMInput->setString(str);
+    loopBPMInput->setPosition({ 200.0f, 90.0f });
+    loopBPMInput->setString(fmt::format("{:.3f}", spawnBPM->getValue()));
+    loopBPMInput->setCallback([loopBPMInput, loopBPMSlider, spawnBPM](const std::string& str) {
+        if (auto value = numFromString<double>(str)) {
+            spawnBPM->setValue(round(value.unwrap() * 1000.0) / 1000.0);
+            loopBPMSlider->setValue(spawnBPM->getValue() / 1000.0);
+        }
     });
-    loopBPMInput->setMaxCharCount(3);
-    loopBPMInput->setCommonFilter(CommonFilter::Uint);
+    loopBPMInput->setMaxCharCount(7);
+    loopBPMInput->setFilter(".0123456789");
     loopBPMInput->setID("loop-bpm-input");
     m_mainLayer->addChild(loopBPMInput);
 
-    auto loopBPMLabel = CCLabelBMFont::create(fmt::format("{} BPM", spawnBPM).c_str(), "bigFont.fnt");
-    loopBPMLabel->setPosition({ 300.0f, 80.0f });
-    loopBPMLabel->setScale(0.3f);
-    loopBPMLabel->setID("loop-bpm-label");
-    m_mainLayer->addChild(loopBPMLabel);
-
-    m_listeners.emplace(SmartBPMTrigger::listen<int>("spawn-bpm", [loopBPMInput, loopBPMLabel](int value) {
-        loopBPMInput->setString(fmt::to_string(value));
-        loopBPMLabel->setString(fmt::format("{} BPM", value).c_str());
-    }, mod));
-
-    auto bpmSmallLeftButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_leftBtn_001.png", 1.0f, [](auto) {
-        auto mod = Mod::get();
-        auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
-        if (spawnBPM > 1) SmartBPMTrigger::set<"spawn-bpm", int>(spawnBPM - 1, mod);
+    CCMenuItemExt::assignCallback<SliderThumb>(loopBPMSlider->m_touchLogic->m_thumb, [loopBPMInput, spawnBPM](SliderThumb* thumb) {
+        auto value = round(thumb->getValue() * 1000000.0) / 1000.0;
+        spawnBPM->setValue(value);
+        loopBPMInput->setString(value == 1000.0 ? "1000.00" : fmt::format("{:.3f}", value));
     });
-    bpmSmallLeftButton->setPosition({ 250.0f, 100.0f });
-    bpmSmallLeftButton->setID("bpm-small-left-button");
-    m_buttonMenu->addChild(bpmSmallLeftButton);
-
-    auto bpmSmallRightButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_rightBtn_001.png", 1.0f, [](auto) {
-        auto mod = Mod::get();
-        auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
-        if (spawnBPM < 999) SmartBPMTrigger::set<"spawn-bpm", int>(spawnBPM + 1, mod);
-    });
-    bpmSmallRightButton->setPosition({ 350.0f, 100.0f });
-    bpmSmallRightButton->setID("bpm-small-right-button");
-    m_buttonMenu->addChild(bpmSmallRightButton);
-
-    auto bpmBigLeftButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_leftBtn2_001.png", 0.8f, [](auto) {
-        auto mod = Mod::get();
-        auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
-        if (spawnBPM > 1) SmartBPMTrigger::set<"spawn-bpm", int>(std::max(spawnBPM - 10, 1), mod);
-    });
-    bpmBigLeftButton->setPosition({ 230.0f, 100.0f });
-    bpmBigLeftButton->setID("bpm-big-left-button");
-    m_buttonMenu->addChild(bpmBigLeftButton);
-
-    auto bpmBigRightButton = CCMenuItemExt::createSpriteExtraWithFrameName("edit_rightBtn2_001.png", 0.8f, [](auto) {
-        auto mod = Mod::get();
-        auto spawnBPM = SmartBPMTrigger::get<"spawn-bpm", int>(mod);
-        if (spawnBPM < 999) SmartBPMTrigger::set<"spawn-bpm", int>(std::min(spawnBPM + 10, 999), mod);
-    });
-    bpmBigRightButton->setPosition({ 370.0f, 100.0f });
-    bpmBigRightButton->setID("bpm-big-right-button");
-    m_buttonMenu->addChild(bpmBigRightButton);
 
     auto ui = layer->m_editorUI;
     auto objectSelected = ui->m_selectedObject || (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0);
-    auto opacity = 127 + (objectSelected * 128);
 
-    auto snapSprite = ButtonSprite::create("Snap", 0.8f);
-    snapSprite->m_BGSprite->setOpacity(opacity);
-    snapSprite->m_label->setOpacity(opacity);
+    auto bottomMenu = CCMenu::create();
+    bottomMenu->setPosition({ 200.0f, 25.0f });
+    bottomMenu->setContentSize({ 400.0f, 30.0f });
+    bottomMenu->setEnabled(objectSelected);
+    bottomMenu->setLayout(RowLayout::create()->setGap(20.0f));
+    bottomMenu->setID("bottom-menu");
+    m_mainLayer->addChild(bottomMenu);
+
+    auto snapSprite = ButtonSprite::create("Snap Object", 0.8f);
+    snapSprite->setCascadeOpacityEnabled(true);
     auto snapButton = CCMenuItemExt::createSpriteExtra(snapSprite, [this, layer](auto) {
         guidelineSnap(layer);
         onClose(nullptr);
     });
-    snapButton->setPosition({ 100.0f, 25.0f });
-    snapButton->setEnabled(objectSelected);
     snapButton->setID("snap-button");
-    m_buttonMenu->addChild(snapButton);
+    bottomMenu->addChild(snapButton);
 
-    auto settingsButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Settings", 0.8f), [](auto) {
-        openSettingsPopup(Mod::get());
-    });
-    settingsButton->setPosition({ 195.0f, 25.0f });
-    settingsButton->setID("settings-button");
-    m_buttonMenu->addChild(settingsButton);
-
-    auto createSprite = ButtonSprite::create("Create", 0.8f);
-    createSprite->m_BGSprite->setOpacity(opacity);
-    createSprite->m_label->setOpacity(opacity);
+    auto createSprite = ButtonSprite::create("Create Loop", 0.8f);
+    createSprite->setCascadeOpacityEnabled(true);
     auto createButton = CCMenuItemExt::createSpriteExtra(createSprite, [this, layer](auto) {
         createLoop(layer);
         onClose(nullptr);
     });
-    createButton->setPosition({ 300.0f, 25.0f });
-    createButton->setEnabled(objectSelected);
     createButton->setID("create-button");
-    m_buttonMenu->addChild(createButton);
+    bottomMenu->addChild(createButton);
+
+    bottomMenu->setOpacity(127 + (objectSelected * 128));
+    bottomMenu->updateLayout();
+
+    m_otherNodes = CCArray::create();
+    m_otherNodes->addObjectsFromArray(m_mainLayer->getChildren());
+    m_otherNodes->removeObject(m_buttonMenu);
+    m_otherNodes->removeObject(m_title);
+    m_otherNodes->removeObject(m_bgSprite);;
 
     return true;
 }
 
+CCPoint getDifference(float x) {
+    auto closest = SmartBPMTrigger::guidelines[0];
+    for (auto guideline : SmartBPMTrigger::guidelines) {
+        if (abs(guideline - x) < abs(closest - x)) closest = guideline;
+    }
+    return { closest - x, 0.0f };
+}
+
 void SBTSettingsPopup::guidelineSnap(LevelEditorLayer* layer) {
-    auto mod = Mod::get();
-    auto guidelines = SmartBPMTrigger::getGuidelines(layer->m_drawGridLayer, mod);
-    if (guidelines.empty()) return;
+    if (SmartBPMTrigger::guidelines.empty()) return;
 
     auto ui = layer->m_editorUI;
     if (ui->m_selectedObject) {
         layer->addToUndoList(UndoObject::create(ui->m_selectedObject, UndoCommand::Transform), false);
-        auto x = ui->m_selectedObject->getPositionX();
-        std::ranges::sort(guidelines, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
-        ui->moveObject(ui->m_selectedObject, { guidelines[0] - x, 0.0f });
+        ui->moveObject(ui->m_selectedObject, getDifference(ui->m_selectedObject->getPositionX()));
     }
     else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
         ui->createUndoObject(UndoCommand::Transform, false);
-        if (SmartBPMTrigger::get<"snap-distribute", bool>(mod)) {
+        if (SmartBPMTrigger::get<bool>("snap-distribute")) {
             for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
-                auto x = object->getPositionX();
-                std::ranges::sort(guidelines, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
-                ui->moveObject(object, { guidelines[0] - x, 0.0f });
+                ui->moveObject(object, getDifference(object->getPositionX()));
             }
         }
         else {
-            auto x = ui->getGroupCenter(ui->m_selectedObjects, false).x;
-            std::ranges::sort(guidelines, [x](float a, float b) { return std::abs(a - x) < std::abs(b - x); });
-            auto dx = guidelines[0] - x;
+            auto diff = getDifference(ui->getGroupCenter(ui->m_selectedObjects, false).x);
             for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
-                ui->moveObject(object, { dx, 0.0f });
+                ui->moveObject(object, diff);
             }
         }
     }
 }
 
 void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
-    auto spawnObjects = CCArray::create();
+    std::vector<EffectGameObject*> spawnObjects;
     auto ui = layer->m_editorUI;
     if (ui->m_selectedObject) {
-        if (ui->m_selectedObject->isSpawnableTrigger()) spawnObjects->addObject(ui->m_selectedObject);
+        if (ui->m_selectedObject->isSpawnableTrigger()) spawnObjects.push_back(static_cast<EffectGameObject*>(ui->m_selectedObject));
     }
     else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
-        for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
-            if (object->isSpawnableTrigger()) spawnObjects->addObject(object);
+        for (auto object : CCArrayExt<EffectGameObject*>(ui->m_selectedObjects)) {
+            if (object->isSpawnableTrigger()) spawnObjects.push_back(object);
         }
     }
 
-    auto spawnObjectsBegin = reinterpret_cast<GameObject**>(spawnObjects->data->arr);
-    std::sort(spawnObjectsBegin, spawnObjectsBegin + spawnObjects->data->num, [](GameObject* a, GameObject* b) {
+    std::ranges::sort(spawnObjects, [](EffectGameObject* a, EffectGameObject* b) {
         return a->getRealPosition().x < b->getRealPosition().x;
     });
 
-    auto spawnArray = CCArray::create();
+    std::vector<std::vector<EffectGameObject*>> spawnArray;
     auto x = 0.0f;
     auto y = 0.0f;
-    for (auto object : CCArrayExt<EffectGameObject*>(spawnObjects)) {
+    for (auto object : spawnObjects) {
         object->m_isSpawnTriggered = true;
         object->m_isMultiTriggered = true;
         auto realPosition = object->getRealPosition();
         if (realPosition.x < x || x == 0.0f) x = realPosition.x;
         if (realPosition.y > y || y == 0.0f) y = realPosition.y;
-        if (spawnArray->count() > 0) {
-            auto lastArray = static_cast<CCArray*>(spawnArray->lastObject());
-            auto lastRealPosition = static_cast<GameObject*>(lastArray->objectAtIndex(0))->getRealPosition();
-            if (realPosition.x - lastRealPosition.x > 0.1f) {
-                auto innerArray = CCArray::create();
-                innerArray->addObject(object);
-                spawnArray->addObject(innerArray);
-            }
-            else lastArray->addObject(object);
-        }
+        if (spawnArray.empty()) spawnArray.push_back({ object });
         else {
-            auto innerArray = CCArray::create();
-            innerArray->addObject(object);
-            spawnArray->addObject(innerArray);
+            auto& lastArray = spawnArray.back();
+            if (realPosition.x - lastArray.front()->getRealPosition().x > 0.1f) spawnArray.push_back({ object });
+            else lastArray.push_back(object);
         }
     }
 
     auto groupID = layer->getNextFreeGroupID(nullptr);
     auto firstID = groupID;
     auto mainTrigger = static_cast<EffectGameObject*>(ui->createObject(1268, { x, y + 90.0f }));
-    mainTrigger->m_targetGroupID = std::clamp(groupID, 0, 9999);
-    layer->removeSpecial(mainTrigger);
-    layer->addSpecial(mainTrigger);
+    mainTrigger->setTargetID(groupID);
+    layer->refreshSpecial(mainTrigger);
 
-    auto mod = Mod::get();
     auto time = layer->timeForPos({ x, 0.0f }, 0, 0, false, 0);
     auto delay = 0.0f;
     auto sum = 0.0f;
     auto oldID = groupID;
-    auto lastIndex = spawnArray->count() - 1;
-    for (int i = 0; i < spawnArray->count(); i++) {
-        auto innerArray = static_cast<CCArray*>(spawnArray->objectAtIndex(i));
-        auto diff = delay;
-        if (i < lastIndex) {
-            diff = layer->timeForPos({
-                static_cast<GameObject*>(static_cast<CCArray*>(spawnArray->objectAtIndex(i + 1))->objectAtIndex(0))->getRealPosition().x,
-                0.0f
-            }, 0, 0, false, 0) - time;
-        }
+    auto lastIndex = spawnArray.size() - 1;
+    auto spawnBPM = SmartBPMTrigger::get<float>("spawn-bpm");
+    for (int i = 0; i < spawnArray.size(); i++) {
+        auto& innerArray = spawnArray[i];
+        auto diff = i < lastIndex ? layer->timeForPos({ spawnArray[i + 1].front()->getRealPosition().x, 0.0f }, 0, 0, false, 0) - time : delay;
         groupID = oldID;
-        for (int j = 0; j < innerArray->count(); j++) {
-            auto object = static_cast<GameObject*>(innerArray->objectAtIndex(j));
-            if (object->addToGroup(oldID) == 1) layer->addToGroup(object, oldID, false);
+        for (int j = 0; j < innerArray.size(); j++) {
+            auto object = innerArray[j];
+            layer->addObjectToGroup(object, oldID);
             if (j == 0) {
-                delay = diff;
-                groupID = firstID;
-                if (i != lastIndex) {
-                    groupID = layer->getNextFreeGroupID(nullptr);
-                    delay = diff - sum;
-                }
-                else delay = std::max(60.0f / SmartBPMTrigger::get<"spawn-bpm", int>(mod) - sum, 0.0f);
+                delay = i != lastIndex ? diff - sum : std::max(60.0f / spawnBPM - sum, 0.0f);
+                groupID = i != lastIndex ? layer->getNextFreeGroupID(nullptr) : firstID;
                 auto spawnTrigger = static_cast<SpawnTriggerGameObject*>(ui->createObject(1268, { object->getRealPosition().x, y + 60.0f }));
-                if (spawnTrigger->addToGroup(oldID) == 1) layer->addToGroup(spawnTrigger, oldID, false);
+                layer->addObjectToGroup(spawnTrigger, oldID);
                 spawnTrigger->m_spawnDelay = delay;
                 spawnTrigger->m_isSpawnTriggered = true;
                 spawnTrigger->m_isMultiTriggered = true;
-                spawnTrigger->m_targetGroupID = std::clamp(groupID, 0, 9999);
-                layer->removeSpecial(spawnTrigger);
-                layer->addSpecial(spawnTrigger);
+                spawnTrigger->setTargetID(groupID);
+                layer->refreshSpecial(spawnTrigger);
                 sum += delay;
             }
         }
@@ -387,4 +334,37 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
     }
 
     layer->dirtifyTriggers();
+}
+
+void SBTSettingsPopup::showPicker(CCSprite* barSprite, Color4BSettingV3* colorSetting, FloatSettingV3* widthSetting) {
+    m_barButtonSprite = barSprite;
+    m_colorSetting = colorSetting;
+    m_widthSetting = widthSetting;
+    m_colorWidget->setValues(colorSetting->getValue(), widthSetting->getValue());
+    m_mainLayer->addChild(m_colorWidget);
+    m_mainLayer->addChild(m_barSprite);
+    for (auto node : CCArrayExt<CCNode*>(m_otherNodes)) {
+        node->setVisible(false);
+    }
+    auto normalImage = static_cast<CCSprite*>(m_closeBtn->getNormalImage());
+    normalImage->setDisplayFrame(SmartBPMTrigger::getSpriteFrameCache()->spriteFrameByName("GJ_backBtn_001.png"));
+    normalImage->setScale(0.74f);
+}
+
+void SBTSettingsPopup::onClose(CCObject* sender) {
+    if (m_barButtonSprite && m_colorSetting && m_widthSetting) {
+        m_barButtonSprite = nullptr;
+        m_colorSetting = nullptr;
+        m_widthSetting = nullptr;
+        m_colorWidget->removeFromParent();
+        m_barSprite->removeFromParent();
+        for (auto node : CCArrayExt<CCNode*>(m_otherNodes)) {
+            node->setVisible(true);
+        }
+        auto normalImage = static_cast<CCSprite*>(m_closeBtn->getNormalImage());
+        normalImage->setDisplayFrame(SmartBPMTrigger::getSpriteFrameCache()->spriteFrameByName("GJ_closeBtn_001.png"));
+        normalImage->setScale(0.8f);
+        setTitle("Smart BPM Trigger");
+    }
+    else Popup::onClose(sender);
 }

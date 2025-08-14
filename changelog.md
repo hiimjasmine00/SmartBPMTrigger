@@ -1,4 +1,10 @@
 # Smart BPM Trigger Changelog
+## v1.2.0 (2025-08-14)
+- Switched to "Good Grid" for grid line drawing
+- Revamped the BPM trigger color popup
+- Added the ability to change color settings in the Smart BPM Trigger popup
+- Added decimal support to the BPM spawn loop input ([#1](https://github.com/hiimjasmine00/SmartBPMTrigger/issues/1))
+
 ## v1.1.6 (2025-08-04)
 - Added compatibility with the mod "Good Grid" by Alphalaneous
 

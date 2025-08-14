@@ -1,5 +1,5 @@
 #include "../SmartBPMTrigger.hpp"
-#include "../classes/SBTOptionsPopup.hpp"
+#include "../classes/SBTTriggerData.hpp"
 #include <Geode/binding/EffectGameObject.hpp>
 #include <Geode/modify/SetupTriggerPopup.hpp>
 
@@ -7,7 +7,7 @@ using namespace geode::prelude;
 
 class $modify(SBTSetupTriggerPopup, SetupTriggerPopup) {
     static void onModify(ModifyBase<ModifyDerive<SBTSetupTriggerPopup, SetupTriggerPopup>>& self) {
-        SmartBPMTrigger::modify(self);
+        SmartBPMTrigger::modify(self.m_hooks);
     }
 
     void valueChanged(int property, float value) {
@@ -27,19 +27,18 @@ class $modify(SBTSetupTriggerPopup, SetupTriggerPopup) {
     static void updateBeats(SBTTriggerData* data, int beats) {
         if (!data) return;
 
-        auto mod = Mod::get();
         auto& colors = data->m_colors;
         if (colors.size() < beats) {
-            auto bpmColor = SmartBPMTrigger::get<"beats-per-minute-color", ccColor4B>(mod);
-            auto bpbColor = SmartBPMTrigger::get<"beats-per-bar-color", ccColor4B>(mod);
+            auto bpmColor = SmartBPMTrigger::get<ccColor4B>("beats-per-minute-color");
+            auto bpbColor = SmartBPMTrigger::get<ccColor4B>("beats-per-bar-color");
             for (int i = colors.size(); i < beats; i++) {
                 colors.push_back(i == 0 ? bpmColor : bpbColor);
             }
         }
         auto& widths = data->m_widths;
         if (widths.size() < beats) {
-            auto bpmWidth = SmartBPMTrigger::get<"beats-per-minute-width", float>(mod);
-            auto bpbWidth = SmartBPMTrigger::get<"beats-per-bar-width", float>(mod);
+            auto bpmWidth = SmartBPMTrigger::get<float>("beats-per-minute-width");
+            auto bpbWidth = SmartBPMTrigger::get<float>("beats-per-bar-width");
             for (int i = widths.size(); i < beats; i++) {
                 widths.push_back(i == 0 ? bpmWidth : bpbWidth);
             }

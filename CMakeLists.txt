@@ -9,16 +9,18 @@ endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(GEODE_DISABLE_PRECOMPILED_HEADERS ON)
 
-project(SmartBPMTrigger VERSION 1.1.6)
+project(SmartBPMTrigger VERSION 1.2.0)
 
 add_library(${PROJECT_NAME} SHARED
+    src/classes/SBTColorWidget.cpp
     src/classes/SBTOptionsPopup.cpp
     src/classes/SBTSettingsPopup.cpp
     src/classes/SBTTriggerData.cpp
-    src/hooks/ColorSelectPopup.cpp
+    src/hooks/CCDrawNode.cpp
     src/hooks/DrawGridLayer.cpp
     src/hooks/EditorPauseLayer.cpp
     src/hooks/EditorUI.cpp
+    src/hooks/GameManager.cpp
     src/hooks/LevelEditorLayer.cpp
     src/hooks/SetupAudioLineGuidePopup.cpp
     src/hooks/SetupTriggerPopup.cpp

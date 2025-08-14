@@ -9,7 +9,7 @@ using namespace geode::prelude;
 
 class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
     static void onModify(ModifyBase<ModifyDerive<SBTLevelEditorLayer, LevelEditorLayer>>& self) {
-        SmartBPMTrigger::modify(self);
+        SmartBPMTrigger::modify(self.m_hooks);
     }
 
     void createObjectsFromSetup(gd::string& gdSetup) {
@@ -20,12 +20,12 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
         if (textObject != std::string_view::npos) {
             auto nextSemicolon = setup.find(";", textObject + 1);
             if (nextSemicolon == std::string_view::npos) nextSemicolon = setup.size();
-            auto beforeNextSemicolon = std::string(setup, 0, nextSemicolon);
+            auto beforeNextSemicolon = setup.substr(0, nextSemicolon);
             auto base64Text = beforeNextSemicolon.find("31,", textObject + 1);
             if (base64Text != std::string_view::npos) {
                 auto nextComma = beforeNextSemicolon.find(",", base64Text + 3);
                 if (nextComma == std::string_view::npos) nextComma = nextSemicolon;
-                decodedText = base64::decodeString(std::string(setup, base64Text + 3, nextComma - base64Text - 3)).unwrapOr("");
+                GEODE_UNWRAP_INTO_IF_OK(decodedText, base64::decodeString(setup.substr(base64Text + 3, nextComma - base64Text - 3)));
             }
         }
 

@@ -7,11 +7,10 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
     auto ret = new SBTTriggerData();
     ret->m_beats = beats;
 
-    auto mod = Mod::get();
-    auto bpmColor = SmartBPMTrigger::get<"beats-per-minute-color", ccColor4B>(mod);
-    auto bpmWidth = SmartBPMTrigger::get<"beats-per-minute-width", float>(mod);
-    auto bpbColor = SmartBPMTrigger::get<"beats-per-bar-color", ccColor4B>(mod);
-    auto bpbWidth = SmartBPMTrigger::get<"beats-per-bar-width", float>(mod);
+    auto bpmColor = SmartBPMTrigger::get<ccColor4B>("beats-per-minute-color");
+    auto bpmWidth = SmartBPMTrigger::get<float>("beats-per-minute-width");
+    auto bpbColor = SmartBPMTrigger::get<ccColor4B>("beats-per-bar-color");
+    auto bpbWidth = SmartBPMTrigger::get<float>("beats-per-bar-width");
 
     if (!str.empty()) {
         auto split = string::split(str, ",");

@@ -10,7 +10,7 @@ using namespace geode::prelude;
 
 class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
     static void onModify(ModifyBase<ModifyDerive<SBTEditorPauseLayer, EditorPauseLayer>>& self) {
-        SmartBPMTrigger::modify(self);
+        SmartBPMTrigger::modify(self.m_hooks);
     }
 
     void saveLevel() {
@@ -38,21 +38,16 @@ class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
 
         #ifdef GEODE_IS_ANDROID
         std::string saveString;
-        for (auto k : keys) {
-            if (!saveString.empty()) saveString += ';';
-            if (auto triggerData = static_cast<SBTTriggerData*>(audioLineObjects[k]->getUserObject("trigger-data"_spr)))
-                saveString += triggerData->getSaveString();
-        }
-        saveObject->m_text = saveString;
         #else
         auto& saveString = saveObject->m_text;
         saveString.clear();
+        #endif
         for (auto k : keys) {
             if (!saveString.empty()) saveString += ';';
             if (auto triggerData = static_cast<SBTTriggerData*>(audioLineObjects[k]->getUserObject("trigger-data"_spr)))
                 saveString += triggerData->getSaveString();
         }
-        #endif
+        GEODE_ANDROID(saveObject->m_text = saveString;)
 
         EditorPauseLayer::saveLevel();
     }
