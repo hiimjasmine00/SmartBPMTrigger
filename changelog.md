@@ -1,4 +1,8 @@
 # Smart BPM Trigger Changelog
+## v1.2.1 (2025-08-15)
+- Fixed some textboxes not respecting their maximum values
+- Repositioned the "Save" and "Reset" buttons in the BPM trigger color popup
+
 ## v1.2.0 (2025-08-14)
 - Switched to "Good Grid" for grid line drawing
 - Revamped the BPM trigger color popup

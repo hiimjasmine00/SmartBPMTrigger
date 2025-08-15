@@ -177,7 +177,7 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     loopBPMInput->setString(fmt::format("{:.3f}", spawnBPM->getValue()));
     loopBPMInput->setCallback([loopBPMInput, loopBPMSlider, spawnBPM](const std::string& str) {
         if (auto value = numFromString<double>(str)) {
-            spawnBPM->setValue(round(value.unwrap() * 1000.0) / 1000.0);
+            spawnBPM->setValue(std::clamp(round(value.unwrap() * 1000.0) / 1000.0, 0.0, 1000.0));
             loopBPMSlider->setValue(spawnBPM->getValue() / 1000.0);
         }
     });

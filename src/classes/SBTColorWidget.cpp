@@ -147,7 +147,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_widthInput->setString(fmt::format("{:.02f}", m_width));
     m_widthInput->setCallback([this](const std::string& str) {
         if (auto value = numFromString<float>(str)) {
-            m_width = value.unwrap();
+            m_width = std::clamp(value.unwrap(), 0.0f, 5.0f);
             updateWidth(false, true, false);
         }
     });

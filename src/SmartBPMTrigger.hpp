@@ -1,19 +1,5 @@
 #include <Geode/loader/SettingV3.hpp>
 
-// Thanks Prevter https://github.com/EclipseMenu/EclipseMenu/blob/v1.3.2/src/modules/config/config.hpp#L137
-template <size_t N>
-struct TemplateString {
-    static constexpr size_t size = N;
-    char value[N]{};
-    constexpr TemplateString() = default;
-    constexpr TemplateString(const char (&str)[N]) {
-        std::copy_n(str, N, value);
-    }
-    constexpr operator std::string_view() const {
-        return { value, N - 1 };
-    }
-};
-
 class SmartBPMTrigger {
 public:
     inline static std::vector<float> guidelines;

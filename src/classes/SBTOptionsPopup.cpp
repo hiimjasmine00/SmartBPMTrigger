@@ -182,7 +182,7 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
             Popup::onClose(nullptr);
         }
     });
-    saveButton->setPosition({ 155.0f, 25.0f });
+    saveButton->setPosition({ 245.0f, 25.0f });
     saveButton->setID("save-button");
     m_buttonMenu->addChild(saveButton);
 
@@ -231,7 +231,7 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
             }
         }
     });
-    resetButton->setPosition({ 240.0f, 25.0f });
+    resetButton->setPosition({ 160.0f, 25.0f });
     resetButton->setID("reset-button");
     m_buttonMenu->addChild(resetButton);
 
