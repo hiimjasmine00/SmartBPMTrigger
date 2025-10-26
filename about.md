@@ -14,3 +14,6 @@ Editor guidelines improved.
 ## Credits
 - [IOMAN](user:8265048) - Original idea for the mod
 - [hiimjasmine00](user:7466002) - Creator of the mod
+
+## License
+This mod is licensed under the [MIT License](https://github.com/hiimjasmine00/SmartBPMTrigger/blob/master/LICENSE).

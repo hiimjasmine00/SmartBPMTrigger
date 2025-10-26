@@ -18,12 +18,7 @@ class $modify(SBTDrawNode, CCDrawNode) {
         if (a != 1.0f) {
             for (int i = 0; i < m_nBufferCount; i++) {
                 auto& oldColor = m_pBuffer[i].colors;
-                ccColor4B newColor = {
-                    (uint8_t)(oldColor.r * a),
-                    (uint8_t)(oldColor.g * a),
-                    (uint8_t)(oldColor.b * a),
-                    (uint8_t)(oldColor.a * a)
-                };
+                ccColor4B newColor(oldColor.r * a, oldColor.g * a, oldColor.b * a, oldColor.a * a);
                 if (oldColor != newColor) {
                     oldColor = newColor;
                     ret = true;

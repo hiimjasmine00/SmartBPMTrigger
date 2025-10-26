@@ -39,14 +39,20 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_opacityNodes = CCArray::create();
     for (auto child : CCArrayExt<CCNode*>(m_colorPicker->getChildren())) {
         if (!child->isVisible()) continue;
-        if (exact_cast<CCSpriteBatchNode*>(child)) m_opacityNodes->addObjectsFromArray(child->getChildren());
+        if (exact_cast<CCSpriteBatchNode*>(child)) {
+            m_opacityNodes->addObjectsFromArray(child->getChildren());
+        }
         else if (typeinfo_cast<CCNodeRGBA*>(child)) {
             m_opacityNodes->addObject(child);
             for (auto grandchild : CCArrayExt<CCNode*>(child->getChildren())) {
-                if (typeinfo_cast<CCNodeRGBA*>(grandchild)) m_opacityNodes->addObject(grandchild);
+                if (typeinfo_cast<CCNodeRGBA*>(grandchild)) {
+                    m_opacityNodes->addObject(grandchild);
+                }
             }
         }
-        else if (exact_cast<CCLabelBMFont*>(child) || exact_cast<CCMenu*>(child) || exact_cast<TextInput*>(child)) child->setVisible(false);
+        else if (exact_cast<CCLabelBMFont*>(child) || exact_cast<CCMenu*>(child) || exact_cast<TextInput*>(child)) {
+            child->setVisible(false);
+        }
     }
 
     m_redLabel = CCLabelBMFont::create("R", "goldFont.fnt");
@@ -86,10 +92,8 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_redInput->setMaxCharCount(3);
     m_redInput->setString(fmt::to_string(m_color.r));
     m_redInput->setCallback([this](const std::string& str) {
-        if (auto value = numFromString<uint8_t>(str)) {
-            m_color.r = value.unwrap();
-            updateRed(false, true, false);
-        }
+        std::from_chars(str.data(), str.data() + str.size(), m_color.r);
+        updateRed(false, true, false);
     });
     m_redInput->setID("red-input");
     addChild(m_redInput);
@@ -101,10 +105,8 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_greenInput->setMaxCharCount(3);
     m_greenInput->setString(fmt::to_string(m_color.g));
     m_greenInput->setCallback([this](const std::string& str) {
-        if (auto value = numFromString<uint8_t>(str)) {
-            m_color.g = value.unwrap();
-            updateGreen(false, true, false);
-        }
+        std::from_chars(str.data(), str.data() + str.size(), m_color.g);
+        updateGreen(false, true, false);
     });
     m_greenInput->setID("green-input");
     addChild(m_greenInput);
@@ -116,10 +118,8 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_blueInput->setMaxCharCount(3);
     m_blueInput->setString(fmt::to_string(m_color.b));
     m_blueInput->setCallback([this](const std::string& str) {
-        if (auto value = numFromString<uint8_t>(str)) {
-            m_color.b = value.unwrap();
-            updateBlue(false, true, false);
-        }
+        std::from_chars(str.data(), str.data() + str.size(), m_color.b);
+        updateBlue(false, true, false);
     });
     m_blueInput->setID("blue-input");
     addChild(m_blueInput);
@@ -131,10 +131,8 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_alphaInput->setMaxCharCount(3);
     m_alphaInput->setString(fmt::to_string(m_color.a));
     m_alphaInput->setCallback([this](const std::string& str) {
-        if (auto value = numFromString<uint8_t>(str)) {
-            m_color.a = value.unwrap();
-            updateAlpha(false, true, false);
-        }
+        std::from_chars(str.data(), str.data() + str.size(), m_color.a);
+        updateAlpha(false, true, false);
     });
     m_alphaInput->setID("alpha-input");
     addChild(m_alphaInput);
@@ -146,10 +144,13 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_widthInput->setMaxCharCount(4);
     m_widthInput->setString(fmt::format("{:.02f}", m_width));
     m_widthInput->setCallback([this](const std::string& str) {
-        if (auto value = numFromString<float>(str)) {
-            m_width = std::clamp(value.unwrap(), 0.0f, 5.0f);
-            updateWidth(false, true, false);
-        }
+        #ifdef __cpp_lib_to_chars
+        std::from_chars(str.data(), str.data() + str.size(), m_width);
+        #else
+        if (auto num = numFromString<float>(str).ok()) m_width = *num;
+        #endif
+        m_width = std::clamp(m_width, 0.0f, 5.0f);
+        updateWidth(false, true, false);
     });
     m_widthInput->setID("width-input");
     addChild(m_widthInput);
@@ -476,14 +477,18 @@ void SBTColorWidget::prepareActions(bool show) {
 
 void SBTColorWidget::onEnter() {
     CCLayer::onEnter();
-    if (auto hook = SmartBPMTrigger::drawNodeHook) hook->enable().inspectErr([](const std::string& err) {
-        log::error("Failed to enable cocos2d::CCDrawNode::draw hook: {}", err);
-    });
+    if (auto hook = SmartBPMTrigger::drawNodeHook) {
+        if (auto err = hook->enable().err()) {
+            log::error("Failed to enable cocos2d::CCDrawNode::draw hook: {}", *err);
+        }
+    }
 }
 
 void SBTColorWidget::onExit() {
     CCLayer::onExit();
-    if (auto hook = SmartBPMTrigger::drawNodeHook) hook->disable().inspectErr([](const std::string& err) {
-        log::error("Failed to disable cocos2d::CCDrawNode::draw hook: {}", err);
-    });
+    if (auto hook = SmartBPMTrigger::drawNodeHook) {
+        if (auto err = hook->disable().err()) {
+            log::error("Failed to disable cocos2d::CCDrawNode::draw hook: {}", *err);
+        }
+    }
 }

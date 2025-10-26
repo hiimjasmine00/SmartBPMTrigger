@@ -4,6 +4,7 @@
 #include <Geode/binding/DrawGridLayer.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/utils/base64.hpp>
+#include <ranges>
 
 using namespace geode::prelude;
 
@@ -25,7 +26,9 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
             if (base64Text != std::string_view::npos) {
                 auto nextComma = beforeNextSemicolon.find(",", base64Text + 3);
                 if (nextComma == std::string_view::npos) nextComma = nextSemicolon;
-                GEODE_UNWRAP_INTO_IF_OK(decodedText, base64::decodeString(setup.substr(base64Text + 3, nextComma - base64Text - 3)));
+                if (auto str = base64::decodeString(setup.substr(base64Text + 3, nextComma - base64Text - 3))) {
+                    decodedText = std::move(str).unwrap();
+                }
             }
         }
 
@@ -34,10 +37,7 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
         auto& audioLineObjects = m_drawGridLayer->m_audioLineObjects;
         if (audioLineObjects.empty() || decodedText.empty()) return;
 
-        std::vector<int> keys;
-        for (auto& pair : audioLineObjects) {
-            keys.push_back(pair.first);
-        }
+        auto keys = std::ranges::to<std::vector<int>>(std::views::keys(audioLineObjects));
         std::ranges::sort(keys);
 
         auto splitData = string::split(decodedText, ";");
@@ -50,8 +50,9 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
     void addSpecial(GameObject* object) {
         LevelEditorLayer::addSpecial(object);
 
-        if (object->m_objectID == 3642 && !object->getUserObject("trigger-data"_spr))
+        if (object->m_objectID == 3642 && !object->getUserObject("trigger-data"_spr)) {
             object->setUserObject("trigger-data"_spr, SBTTriggerData::create("", static_cast<AudioLineGuideGameObject*>(object)->m_beatsPerBar));
+        }
     }
 
     void removeSpecial(GameObject* object) {

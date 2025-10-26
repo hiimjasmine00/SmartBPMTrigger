@@ -34,8 +34,9 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
 
         auto enabled = true;
         if (object) {
-            if (auto triggerData = static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr)))
+            if (auto triggerData = static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr))) {
                 enabled = !triggerData->m_disabled;
+            }
         }
         else if (objects) {
             for (auto object : CCArrayExt<CCNode*>(objects)) {
@@ -62,13 +63,15 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
     void onSmart(CCObject* sender) {
         auto enabled = !static_cast<CCMenuItemToggler*>(sender)->m_toggled;
         if (m_gameObject) {
-            if (auto triggerData = static_cast<SBTTriggerData*>(m_gameObject->getUserObject("trigger-data"_spr)))
+            if (auto triggerData = static_cast<SBTTriggerData*>(m_gameObject->getUserObject("trigger-data"_spr))) {
                 triggerData->m_disabled = !enabled;
+            }
         }
         else if (m_gameObjects) {
             for (auto object : CCArrayExt<CCNode*>(m_gameObjects)) {
-                if (auto triggerData = static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr)))
+                if (auto triggerData = static_cast<SBTTriggerData*>(object->getUserObject("trigger-data"_spr))) {
                     triggerData->m_disabled = !enabled;
+                }
             }
         }
         toggleState(enabled);

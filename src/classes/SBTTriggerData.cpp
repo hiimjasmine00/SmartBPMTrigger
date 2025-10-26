@@ -26,30 +26,38 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
                 case '1': {
                     auto colors = string::split(value, "~");
                     for (int i = 0; i < beats && i < colors.size(); i++) {
-                        auto hexColor = numFromString<uint32_t>(colors[i]).unwrapOr(0);
-                        ret->m_colors.emplace_back(
-                            (uint8_t)((hexColor >> 24) & 255),
-                            (uint8_t)((hexColor >> 16) & 255),
-                            (uint8_t)((hexColor >> 8) & 255),
-                            (uint8_t)(hexColor & 255)
-                        );
+                        auto& color = colors[i];
+                        auto hexColor = 0u;
+                        std::from_chars(color.data(), color.data() + color.size(), hexColor);
+                        ret->m_colors.emplace_back((hexColor >> 24) & 255, (hexColor >> 16) & 255, (hexColor >> 8) & 255, hexColor & 255);
                     }
                     break;
                 }
                 case '2': {
                     auto widths = string::split(value, "~");
                     for (int i = 0; i < beats && i < widths.size(); i++) {
-                        ret->m_widths.push_back(numFromString<float>(widths[i]).unwrapOr(0.0f));
+                        auto& width = widths[i];
+                        auto widthValue = 0.0f;
+                        #ifdef __cpp_lib_to_chars
+                        std::from_chars(width.data(), width.data() + width.size(), widthValue);
+                        #else
+                        if (auto num = numFromString<float>(width).ok()) widthValue = *num;
+                        #endif
+                        ret->m_widths.push_back(widthValue);
                     }
                     break;
                 }
                 case '3': {
-                    ret->m_disabled = numFromString<uint32_t>(value).unwrapOr(0) > 0;
+                    auto disabledValue = 0u;
+                    std::from_chars(value.data(), value.data() + value.size(), disabledValue);
+                    ret->m_disabled = disabledValue > 0;
                     break;
                 }
                 case '4': {
                     hasChanged = true;
-                    ret->m_changed = numFromString<uint32_t>(value).unwrapOr(0) > 0;
+                    auto changedValue = 0u;
+                    std::from_chars(value.data(), value.data() + value.size(), changedValue);
+                    ret->m_changed = changedValue > 0;
                     break;
                 }
             }

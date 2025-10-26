@@ -273,11 +273,17 @@ void SBTOptionsPopup::closeBar() {
     normalImage->setScale(0.8f);
     m_barSprite->stopAllActions();
     auto scaleX = barSprite->getScaleX();
-    if (m_barSprite->getScaleX() != scaleX) m_barSprite->runAction(CCScaleTo::create(0.2f, scaleX, barSprite->getScaleY()));
+    if (m_barSprite->getScaleX() != scaleX) {
+        m_barSprite->runAction(CCScaleTo::create(0.2f, scaleX, barSprite->getScaleY()));
+    }
     auto& color = barSprite->getColor();
-    if (m_barSprite->getColor() != color) m_barSprite->runAction(CCTintTo::create(0.2f, color.r, color.g, color.b));
+    if (m_barSprite->getColor() != color) {
+        m_barSprite->runAction(CCTintTo::create(0.2f, color.r, color.g, color.b));
+    }
     auto opacity = barSprite->getOpacity();
-    if (m_barSprite->getOpacity() != opacity) m_barSprite->runAction(CCFadeTo::create(0.2f, opacity));
+    if (m_barSprite->getOpacity() != opacity) {
+        m_barSprite->runAction(CCFadeTo::create(0.2f, opacity));
+    }
     m_barSprite->runAction(CCSequence::createWithTwoActions(CCMoveTo::create(0.2f, {
         m_mainLayer->convertToNodeSpace(m_barSpriteMenu->convertToWorldSpace(barButton->getPosition())).x,
         150.0f

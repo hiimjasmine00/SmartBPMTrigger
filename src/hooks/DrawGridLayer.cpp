@@ -1,8 +1,8 @@
 #include "../SmartBPMTrigger.hpp"
 #include "../classes/SBTTriggerData.hpp"
 #include <alphalaneous.good_grid/include/DrawGridAPI.hpp>
-#include <alphalaneous.good_grid/include/DrawLayers.hpp>
 #include <Geode/binding/AudioLineGuideGameObject.hpp>
+#include <alphalaneous.good_grid/include/DrawLayers.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/binding/LevelEditorLayer.hpp>
 #include <Geode/binding/LevelSettingsObject.hpp>
@@ -27,7 +27,8 @@ class $modify(SBTDrawGridLayer, DrawGridLayer) {
 $on_mod(Loaded) {
     auto& api = DrawGridAPI::get();
 
-    api.getNode<Guidelines>("guidelines").inspect([](Guidelines& guidelines) {
+    if (auto res = api.getNode<Guidelines>("guidelines")) {
+        auto& guidelines = *res;
         auto orangeColor = SmartBPMTrigger::getSetting<ccColor4B>("orange-color");
         auto orangeWidth = SmartBPMTrigger::getSetting<float>("orange-width");
         auto orangeSnap = SmartBPMTrigger::getSetting<bool>("snap-orange");
@@ -45,15 +46,20 @@ $on_mod(Loaded) {
             auto colorA = color.getColorA();
             auto yellow = colorA == ccColor4B { 255, 255, 0, 255 };
             auto green = colorA == ccColor4B { 127, 255, 0, 255 };
-            if (auto colorSetting = yellow ? yellowColor : green ? greenColor : orangeColor) color = colorSetting->getValue();
-            if (auto widthSetting = yellow ? yellowWidth : green ? greenWidth : orangeWidth) width = widthSetting->getValue();
+            if (auto colorSetting = yellow ? yellowColor : green ? greenColor : orangeColor) {
+                color = colorSetting->getValue();
+            }
+            if (auto widthSetting = yellow ? yellowWidth : green ? greenWidth : orangeWidth) {
+                width = widthSetting->getValue();
+            }
             if (auto snapSetting = yellow ? yellowSnap : green ? greenSnap : orangeSnap) {
                 if (snapSetting->getValue()) SmartBPMTrigger::guidelines.push_back(value);
             }
         });
-    });
+    }
 
-    api.getNode<BPMTriggers>("bpm-triggers").inspect([](BPMTriggers& triggers) {
+    if (auto res = api.getNode<BPMTriggers>("bpm-triggers")) {
+        auto& triggers = *res;
         auto bpmColor = SmartBPMTrigger::getSetting<ccColor4B>("beats-per-minute-color");
         auto bpmWidth = SmartBPMTrigger::getSetting<float>("beats-per-minute-width");
         auto bpmSnap = SmartBPMTrigger::getSetting<bool>("snap-bpm");
@@ -111,15 +117,23 @@ $on_mod(Loaded) {
                 if (pos < left || pos > right) continue;
 
                 ccColor4B color = { 0, 0, 0, 0 };
-                if (triggerData && triggerData->m_changed && index < triggerData->m_colors.size()) color = triggerData->m_colors[index];
-                else if (auto colorSetting = index == 0 ? bpmColor : bpbColor) color = colorSetting->getValue();
+                if (triggerData && triggerData->m_changed && index < triggerData->m_colors.size()) {
+                    color = triggerData->m_colors[index];
+                }
+                else if (auto colorSetting = index == 0 ? bpmColor : bpbColor) {
+                    color = colorSetting->getValue();
+                }
 
                 auto width = 0.0f;
-                if (triggerData && triggerData->m_changed && index < triggerData->m_widths.size()) width = triggerData->m_widths[index];
-                else if (auto widthSetting = index == 0 ? bpmWidth : bpbWidth) width = widthSetting->getValue();
+                if (triggerData && triggerData->m_changed && index < triggerData->m_widths.size()) {
+                    width = triggerData->m_widths[index];
+                }
+                else if (auto widthSetting = index == 0 ? bpmWidth : bpbWidth) {
+                    width = widthSetting->getValue();
+                }
 
                 api.drawLine({ pos, top }, { pos, bottom }, color, width);
             }
         });
-    });
+    }
 }

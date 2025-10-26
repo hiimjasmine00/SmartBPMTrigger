@@ -1,55 +1,65 @@
 #include "SmartBPMTrigger.hpp"
 #include <Geode/binding/GameManager.hpp>
-#include <Geode/loader/Mod.hpp>
+#include <Geode/loader/Hook.hpp>
+#include <Geode/loader/ModSettingsManager.hpp>
 #include <ranges>
 
 using namespace geode::prelude;
 
-void addSetting(std::string_view name, Mod* mod) {
-    SmartBPMTrigger::settings.emplace(name, mod->getSetting(name));
+std::vector<float> SmartBPMTrigger::guidelines;
+Hook* SmartBPMTrigger::drawNodeHook = nullptr;
+
+std::unordered_map<std::string_view, SettingV3*>& SmartBPMTrigger::getSettings() {
+    static std::unordered_map<std::string_view, SettingV3*> settings = [] {
+        std::unordered_map<std::string_view, SettingV3*> settings;
+        auto msm = ModSettingsManager::from(getMod());
+        constexpr std::array keys = {
+            "enabled",
+            "orange-color",
+            "orange-width",
+            "yellow-color",
+            "yellow-width",
+            "green-color",
+            "green-width",
+            "beats-per-minute-color",
+            "beats-per-minute-width",
+            "beats-per-bar-color",
+            "beats-per-bar-width",
+            "snap-distribute",
+            "snap-orange",
+            "snap-yellow",
+            "snap-green",
+            "snap-bpm",
+            "snap-bpb",
+            "spawn-bpm"
+        };
+        for (auto key : keys) {
+            if (auto setting = msm->get(key)) settings.emplace(key, setting.get());
+        }
+        return settings;
+    }();
+    return settings;
 }
 
-$execute {
-    auto mod = Mod::get();
-    addSetting("enabled", mod);
-    addSetting("orange-color", mod);
-    addSetting("orange-width", mod);
-    addSetting("yellow-color", mod);
-    addSetting("yellow-width", mod);
-    addSetting("green-color", mod);
-    addSetting("green-width", mod);
-    addSetting("beats-per-minute-color", mod);
-    addSetting("beats-per-minute-width", mod);
-    addSetting("beats-per-bar-color", mod);
-    addSetting("beats-per-bar-width", mod);
-    addSetting("snap-distribute", mod);
-    addSetting("snap-orange", mod);
-    addSetting("snap-yellow", mod);
-    addSetting("snap-green", mod);
-    addSetting("snap-bpm", mod);
-    addSetting("snap-bpb", mod);
-    addSetting("spawn-bpm", mod);
-}
-
-static CCDirector* director = nullptr;
+CCDirector* director = nullptr;
 CCDirector* SmartBPMTrigger::getDirector() {
     if (!director) director = CCDirector::sharedDirector();
     return director;
 }
 
-static GameManager* gameManager = nullptr;
+GameManager* gameManager = nullptr;
 GameManager* SmartBPMTrigger::getGameManager() {
     if (!gameManager) gameManager = GameManager::sharedState();
     return gameManager;
 }
 
-static CCSpriteFrameCache* spriteFrameCache = nullptr;
+CCSpriteFrameCache* spriteFrameCache = nullptr;
 CCSpriteFrameCache* SmartBPMTrigger::getSpriteFrameCache() {
     if (!spriteFrameCache) spriteFrameCache = CCSpriteFrameCache::sharedSpriteFrameCache();
     return spriteFrameCache;
 }
 
-static CCTextureCache* textureCache = nullptr;
+CCTextureCache* textureCache = nullptr;
 CCTextureCache* SmartBPMTrigger::getTextureCache() {
     if (!textureCache) textureCache = CCTextureCache::sharedTextureCache();
     return textureCache;
@@ -61,25 +71,20 @@ void SmartBPMTrigger::refreshCache() {
 }
 
 void SmartBPMTrigger::modify(std::map<std::string, std::shared_ptr<Hook>>& hooks) {
-    // This gets run before $execute (When the settings map is populated)
-    auto mod = Mod::get();
-    auto enabled = static_cast<BoolSettingV3*>(mod->getSetting("enabled").get())->getValue();
+    if (hooks.empty()) return;
+
+    auto enabled = get<bool>("enabled");
+    log::info("Smart BPM Trigger is {}", enabled ? "enabled" : "disabled");
     for (auto& hook : std::views::values(hooks)) {
         hook->setAutoEnable(enabled);
     }
-    if (!hooks.empty()) {
-        new EventListener([hooks = hooks](std::shared_ptr<SettingV3> setting) {
-            for (auto& [name, hook] : hooks) {
-                if (static_cast<BoolSettingV3*>(setting.get())->getValue()) {
-                    hook->enable().inspectErr([&name](const std::string& err) {
-                        log::error("Failed to enable {} hook: {}", name, err);
-                    });
-                } else {
-                    hook->disable().inspectErr([&name](const std::string& err) {
-                        log::error("Failed to disable {} hook: {}", name, err);
-                    });
-                }
+
+    new EventListener([hooks](std::shared_ptr<SettingV3> setting) {
+        auto enabled = std::static_pointer_cast<BoolSettingV3>(std::move(setting))->getValue();
+        for (auto& [name, hook] : hooks) {
+            if (auto err = hook->toggle(enabled).err()) {
+                log::error("Failed to toggle {} hook: {}", name, *err);
             }
-        }, SettingChangedFilterV3(mod, "enabled"));
-    }
+        }
+    }, SettingChangedFilterV3(GEODE_MOD_ID, "enabled"));
 }

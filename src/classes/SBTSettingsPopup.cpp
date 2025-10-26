@@ -176,10 +176,14 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     loopBPMInput->setPosition({ 200.0f, 90.0f });
     loopBPMInput->setString(fmt::format("{:.3f}", spawnBPM->getValue()));
     loopBPMInput->setCallback([loopBPMInput, loopBPMSlider, spawnBPM](const std::string& str) {
-        if (auto value = numFromString<double>(str)) {
-            spawnBPM->setValue(std::clamp(round(value.unwrap() * 1000.0) / 1000.0, 0.0, 1000.0));
-            loopBPMSlider->setValue(spawnBPM->getValue() / 1000.0);
-        }
+        auto value = spawnBPM->getValue();
+        #ifdef __cpp_lib_to_chars
+        std::from_chars(str.data(), str.data() + str.size(), value);
+        #else
+        if (auto num = numFromString<double>(str).ok()) value = *num;
+        #endif
+        spawnBPM->setValue(std::clamp(round(value * 1000.0) / 1000.0, 0.0, 1000.0));
+        loopBPMSlider->setValue(spawnBPM->getValue() / 1000.0);
     });
     loopBPMInput->setMaxCharCount(7);
     loopBPMInput->setFilter(".0123456789");
@@ -269,11 +273,15 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
     std::vector<EffectGameObject*> spawnObjects;
     auto ui = layer->m_editorUI;
     if (ui->m_selectedObject) {
-        if (ui->m_selectedObject->isSpawnableTrigger()) spawnObjects.push_back(static_cast<EffectGameObject*>(ui->m_selectedObject));
+        if (ui->m_selectedObject->isSpawnableTrigger()) {
+            spawnObjects.push_back(static_cast<EffectGameObject*>(ui->m_selectedObject));
+        }
     }
     else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
         for (auto object : CCArrayExt<EffectGameObject*>(ui->m_selectedObjects)) {
-            if (object->isSpawnableTrigger()) spawnObjects.push_back(object);
+            if (object->isSpawnableTrigger()) {
+                spawnObjects.push_back(object);
+            }
         }
     }
 

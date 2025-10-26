@@ -9,11 +9,11 @@ Editor guidelines improved.
 - BPM spawn loop creator to spawn triggers in a rate of beats per minute
 
 ## Gallery
-![Settings Popup](./resources/settings-popup.png)
+![Settings Popup](https://raw.githubusercontent.com/hiimjasmine00/SmartBPMTrigger/refs/heads/master/resources/settings-popup.png)
 
 ## Credits
 - [IOMAN](https://gdbrowser.com/u/8265048) - Original idea for the mod
 - [hiimjasmine00](https://gdbrowser.com/u/7466002) - Creator of the mod
 
 ## License
-This mod is licensed under the [MIT License](./LICENSE).
+This mod is licensed under the [MIT License](https://github.com/hiimjasmine00/SmartBPMTrigger/blob/master/LICENSE).
