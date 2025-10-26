@@ -5,7 +5,6 @@
 #include <Geode/binding/LevelEditorLayer.hpp>
 #include <Geode/binding/TextGameObject.hpp>
 #include <Geode/modify/EditorPauseLayer.hpp>
-#include <ranges>
 
 using namespace geode::prelude;
 
@@ -31,7 +30,10 @@ class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
             m_editorLayer->addToSection(saveObject);
         }
 
-        auto keys = std::ranges::to<std::vector<int>>(std::views::keys(audioLineObjects));
+        std::vector<int> keys;
+        for (auto& pair : audioLineObjects) {
+            keys.push_back(pair.first);
+        }
         std::ranges::sort(keys);
 
         #ifdef GEODE_IS_ANDROID

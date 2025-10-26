@@ -4,7 +4,6 @@
 #include <Geode/binding/DrawGridLayer.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/utils/base64.hpp>
-#include <ranges>
 
 using namespace geode::prelude;
 
@@ -37,7 +36,10 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
         auto& audioLineObjects = m_drawGridLayer->m_audioLineObjects;
         if (audioLineObjects.empty() || decodedText.empty()) return;
 
-        auto keys = std::ranges::to<std::vector<int>>(std::views::keys(audioLineObjects));
+        std::vector<int> keys;
+        for (auto& pair : audioLineObjects) {
+            keys.push_back(pair.first);
+        }
         std::ranges::sort(keys);
 
         auto splitData = string::split(decodedText, ";");
