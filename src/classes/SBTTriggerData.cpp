@@ -1,19 +1,21 @@
 #include "SBTTriggerData.hpp"
-#include "../SmartBPMTrigger.hpp"
+#include <jasmine/convert.hpp>
+#include <jasmine/setting.hpp>
+#include <jasmine/string.hpp>
 
 using namespace geode::prelude;
 
-SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
+SBTTriggerData* SBTTriggerData::create(std::string_view str, int beats) {
     auto ret = new SBTTriggerData();
     ret->m_beats = beats;
 
-    auto bpmColor = SmartBPMTrigger::get<ccColor4B>("beats-per-minute-color");
-    auto bpmWidth = SmartBPMTrigger::get<float>("beats-per-minute-width");
-    auto bpbColor = SmartBPMTrigger::get<ccColor4B>("beats-per-bar-color");
-    auto bpbWidth = SmartBPMTrigger::get<float>("beats-per-bar-width");
+    auto bpmColor = jasmine::setting::getValue<ccColor4B>("beats-per-minute-color");
+    auto bpmWidth = jasmine::setting::getValue<float>("beats-per-minute-width");
+    auto bpbColor = jasmine::setting::getValue<ccColor4B>("beats-per-bar-color");
+    auto bpbWidth = jasmine::setting::getValue<float>("beats-per-bar-width");
 
     if (!str.empty()) {
-        auto split = string::split(str, ",");
+        auto split = jasmine::string::split(str, ',');
 
         auto hasChanged = false;
         for (auto it = split.begin(); it < split.end() - 1; it += 2) {
@@ -24,39 +26,31 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
 
             switch (type[0]) {
                 case '1': {
-                    auto colors = string::split(value, "~");
+                    auto colors = jasmine::string::split(value, '~');
                     for (int i = 0; i < beats && i < colors.size(); i++) {
                         auto& color = colors[i];
-                        auto hexColor = 0u;
-                        std::from_chars(color.data(), color.data() + color.size(), hexColor);
+                        auto hexColor = jasmine::convert::getInt<uint32_t>(color).value_or(0);
                         ret->m_colors.emplace_back((hexColor >> 24) & 255, (hexColor >> 16) & 255, (hexColor >> 8) & 255, hexColor & 255);
                     }
                     break;
                 }
                 case '2': {
-                    auto widths = string::split(value, "~");
+                    auto widths = jasmine::string::split(value, '~');
                     for (int i = 0; i < beats && i < widths.size(); i++) {
                         auto& width = widths[i];
-                        auto widthValue = 0.0f;
-                        #ifdef __cpp_lib_to_chars
-                        std::from_chars(width.data(), width.data() + width.size(), widthValue);
-                        #else
-                        if (auto num = numFromString<float>(width).ok()) widthValue = *num;
-                        #endif
+                        auto widthValue = jasmine::convert::getFloat<float>(width).value_or(0.0f);
                         ret->m_widths.push_back(widthValue);
                     }
                     break;
                 }
                 case '3': {
-                    auto disabledValue = 0u;
-                    std::from_chars(value.data(), value.data() + value.size(), disabledValue);
+                    auto disabledValue = jasmine::convert::getInt<uint32_t>(value).value_or(0);
                     ret->m_disabled = disabledValue > 0;
                     break;
                 }
                 case '4': {
                     hasChanged = true;
-                    auto changedValue = 0u;
-                    std::from_chars(value.data(), value.data() + value.size(), changedValue);
+                    auto changedValue = jasmine::convert::getInt<uint32_t>(value).value_or(0);
                     ret->m_changed = changedValue > 0;
                     break;
                 }
@@ -107,39 +101,35 @@ SBTTriggerData* SBTTriggerData::create(const std::string& str, int beats) {
 }
 
 std::string SBTTriggerData::getSaveString() {
-    std::string ret;
+    fmt::memory_buffer ret;
 
     if (!m_colors.empty()) {
-        ret += "1,";
-        std::string colors;
+        fmt::format_to(std::back_inserter(ret), "1,");
         for (int i = 0; i < m_beats; i++) {
-            if (!colors.empty()) colors += '~';
+            if (i > 0) ret.push_back('~');
             auto& [r, g, b, a] = m_colors[i];
-            colors += fmt::to_string<uint32_t>(r << 24 | g << 16 | b << 8 | a);
+            fmt::format_to(std::back_inserter(ret), "{}", fmt::to_string<uint32_t>(r << 24 | g << 16 | b << 8 | a));
         }
-        ret += colors;
     }
 
     if (!m_widths.empty()) {
-        if (!ret.empty()) ret += ',';
-        ret += "2,";
-        std::string widths;
+        if (ret.size() > 0) ret.push_back(',');
+        fmt::format_to(std::back_inserter(ret), "2,");
         for (int i = 0; i < m_beats; i++) {
-            if (!widths.empty()) widths += '~';
-            widths += fmt::to_string(m_widths[i]);
+            if (i > 0) ret.push_back('~');
+            fmt::format_to(std::back_inserter(ret), "{}", m_widths[i]);
         }
-        ret += widths;
     }
 
     if (m_disabled) {
-        if (!ret.empty()) ret += ',';
-        ret += "3,1";
+        if (ret.size() > 0) ret.push_back(',');
+        fmt::format_to(std::back_inserter(ret), "3,1");
     }
 
     if (m_changed) {
-        if (!ret.empty()) ret += ',';
-        ret += "4,1";
+        if (ret.size() > 0) ret.push_back(',');
+        fmt::format_to(std::back_inserter(ret), "4,1");
     }
 
-    return ret;
+    return fmt::to_string(ret);
 }

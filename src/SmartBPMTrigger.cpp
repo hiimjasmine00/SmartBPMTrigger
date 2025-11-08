@@ -1,45 +1,11 @@
 #include "SmartBPMTrigger.hpp"
 #include <Geode/binding/GameManager.hpp>
-#include <Geode/loader/Hook.hpp>
-#include <Geode/loader/ModSettingsManager.hpp>
-#include <ranges>
+#include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
 
 std::vector<float> SmartBPMTrigger::guidelines;
 Hook* SmartBPMTrigger::drawNodeHook = nullptr;
-
-std::unordered_map<std::string_view, SettingV3*>& SmartBPMTrigger::getSettings() {
-    static std::unordered_map<std::string_view, SettingV3*> settings = [] {
-        std::unordered_map<std::string_view, SettingV3*> settings;
-        auto msm = ModSettingsManager::from(getMod());
-        constexpr std::array keys = {
-            "enabled",
-            "orange-color",
-            "orange-width",
-            "yellow-color",
-            "yellow-width",
-            "green-color",
-            "green-width",
-            "beats-per-minute-color",
-            "beats-per-minute-width",
-            "beats-per-bar-color",
-            "beats-per-bar-width",
-            "snap-distribute",
-            "snap-orange",
-            "snap-yellow",
-            "snap-green",
-            "snap-bpm",
-            "snap-bpb",
-            "spawn-bpm"
-        };
-        for (auto key : keys) {
-            if (auto setting = msm->get(key)) settings.emplace(key, setting.get());
-        }
-        return settings;
-    }();
-    return settings;
-}
 
 CCDirector* director = nullptr;
 CCDirector* SmartBPMTrigger::getDirector() {
@@ -60,31 +26,15 @@ CCSpriteFrameCache* SmartBPMTrigger::getSpriteFrameCache() {
 }
 
 CCTextureCache* textureCache = nullptr;
-CCTextureCache* SmartBPMTrigger::getTextureCache() {
+std::pair<CCTexture2D*, CCRect> SmartBPMTrigger::getSquare() {
     if (!textureCache) textureCache = CCTextureCache::sharedTextureCache();
-    return textureCache;
+    auto squareTexture = textureCache->addImage("square.png"_spr, false);
+    auto squareSize = squareTexture ? squareTexture->m_tContentSize : CCSize { 2.0f, 2.0f };
+    squareSize /= SmartBPMTrigger::getDirector()->getContentScaleFactor();
+    return { squareTexture, { { 0.0f, 0.0f }, squareSize } };
 }
 
 void SmartBPMTrigger::refreshCache() {
     spriteFrameCache = nullptr;
     textureCache = nullptr;
-}
-
-void SmartBPMTrigger::modify(std::map<std::string, std::shared_ptr<Hook>>& hooks) {
-    if (hooks.empty()) return;
-
-    auto enabled = get<bool>("enabled");
-    log::info("Smart BPM Trigger is {}", enabled ? "enabled" : "disabled");
-    for (auto& hook : std::views::values(hooks)) {
-        hook->setAutoEnable(enabled);
-    }
-
-    new EventListener([hooks](std::shared_ptr<SettingV3> setting) {
-        auto enabled = std::static_pointer_cast<BoolSettingV3>(std::move(setting))->getValue();
-        for (auto& [name, hook] : hooks) {
-            if (auto err = hook->toggle(enabled).err()) {
-                log::error("Failed to toggle {} hook: {}", name, *err);
-            }
-        }
-    }, SettingChangedFilterV3(GEODE_MOD_ID, "enabled"));
 }

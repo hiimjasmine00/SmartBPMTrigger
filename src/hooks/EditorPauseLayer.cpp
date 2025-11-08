@@ -1,16 +1,16 @@
-#include "../SmartBPMTrigger.hpp"
 #include "../classes/SBTTriggerData.hpp"
 #include <Geode/binding/AudioLineGuideGameObject.hpp>
 #include <Geode/binding/DrawGridLayer.hpp>
 #include <Geode/binding/LevelEditorLayer.hpp>
 #include <Geode/binding/TextGameObject.hpp>
 #include <Geode/modify/EditorPauseLayer.hpp>
+#include <jasmine/hook.hpp>
 
 using namespace geode::prelude;
 
 class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
     static void onModify(ModifyBase<ModifyDerive<SBTEditorPauseLayer, EditorPauseLayer>>& self) {
-        SmartBPMTrigger::modify(self.m_hooks);
+        jasmine::hook::modify(self.m_hooks, "EditorPauseLayer::saveLevel", "enabled");
     }
 
     void saveLevel() {
@@ -30,25 +30,21 @@ class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
             m_editorLayer->addToSection(saveObject);
         }
 
-        std::vector<int> keys;
+        std::vector<GameObject*> objects;
         for (auto& pair : audioLineObjects) {
-            keys.push_back(pair.first);
+            objects.insert(std::ranges::upper_bound(objects, pair.second, [](GameObject* a, GameObject* b) {
+                return a->m_uniqueID < b->m_uniqueID;
+            }), pair.second);
         }
-        std::ranges::sort(keys);
 
-        #ifdef GEODE_IS_ANDROID
-        std::string saveString;
-        #else
-        auto& saveString = saveObject->m_text;
-        saveString.clear();
-        #endif
-        for (auto k : keys) {
-            if (!saveString.empty()) saveString += ';';
-            if (auto triggerData = static_cast<SBTTriggerData*>(audioLineObjects[k]->getUserObject("trigger-data"_spr))) {
-                saveString += triggerData->getSaveString();
+        fmt::memory_buffer saveString;
+        for (auto it = objects.begin(); it < objects.end(); ++it) {
+            if (it > objects.begin()) saveString.push_back(';');
+            if (auto triggerData = static_cast<SBTTriggerData*>((*it)->getUserObject("trigger-data"_spr))) {
+                fmt::format_to(std::back_inserter(saveString), "{}", triggerData->getSaveString());
             }
         }
-        GEODE_ANDROID(saveObject->m_text = saveString;)
+        saveObject->m_text = fmt::to_string(saveString);
 
         EditorPauseLayer::saveLevel();
     }

@@ -7,6 +7,8 @@
 #include <Geode/binding/Slider.hpp>
 #include <Geode/binding/UndoObject.hpp>
 #include <Geode/ui/TextInput.hpp>
+#include <jasmine/convert.hpp>
+#include <jasmine/setting.hpp>
 
 using namespace geode::prelude;
 
@@ -44,14 +46,11 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_colorWidget->setScale(0.9f);
     m_colorWidget->setID("color-widget");
 
-    auto squareTexture = SmartBPMTrigger::getTextureCache()->addImage(GEODE_MOD_ID "/square.png", false);
-    auto squareSize = squareTexture ? squareTexture->m_tContentSize : CCSize { 2.0f, 2.0f };
-    squareSize /= SmartBPMTrigger::getDirector()->getContentScaleFactor();
-    CCRect squareRect = { { 0.0f, 0.0f }, squareSize };
+    auto [squareTexture, squareRect] = SmartBPMTrigger::getSquare();
 
     m_barSprite = CCSprite::createWithTexture(squareTexture, squareRect);
     m_barSprite->setPosition({ 90.0f, 135.0f });
-    m_barSprite->setScaleY(250.0f / squareSize.height);
+    m_barSprite->setScaleY(250.0f / squareRect.size.height);
     m_barSprite->setID("bar-sprite");
 
     auto settingsLabel = CCLabelBMFont::create("Guideline Settings", "goldFont.fnt");
@@ -68,25 +67,25 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     m_mainLayer->addChild(settingsMenu);
 
     constexpr std::array guidelineSettings = {
-        std::make_tuple("orange-color", "orange-width", "Orange", "orange"),
-        std::make_tuple("yellow-color", "yellow-width", "Yellow", "yellow"),
-        std::make_tuple("green-color", "green-width", "Green", "green"),
-        std::make_tuple("beats-per-minute-color", "beats-per-minute-width", "BPM", "bpm"),
-        std::make_tuple("beats-per-bar-color", "beats-per-bar-width", "BPB", "bpb")
+        std::make_tuple("orange", "Orange", "orange"),
+        std::make_tuple("yellow", "Yellow", "yellow"),
+        std::make_tuple("green", "Green", "green"),
+        std::make_tuple("beats-per-minute", "BPM", "bpm"),
+        std::make_tuple("beats-per-bar", "BPB", "bpb")
     };
 
-    for (auto& [colorKey, widthKey, label, shortName] : guidelineSettings) {
+    for (auto& [key, label, shortName] : guidelineSettings) {
         auto guidelineMenu = CCMenu::create();
-        guidelineMenu->setContentSize({ squareSize.width, 50.0f });
+        guidelineMenu->setContentSize({ squareRect.size.width, 50.0f });
         guidelineMenu->setID(fmt::format("{}-menu", shortName));
         settingsMenu->addChild(guidelineMenu);
 
-        auto colorSetting = SmartBPMTrigger::getSetting<ccColor4B>(colorKey);
-        auto widthSetting = SmartBPMTrigger::getSetting<float>(widthKey);
+        auto colorSetting = jasmine::setting::get<ccColor4B>(fmt::format("{}-color", key));
+        auto widthSetting = jasmine::setting::get<float>(fmt::format("{}-width", key));
 
         auto barSprite = CCSprite::createWithTexture(squareTexture, squareRect);
         barSprite->setScaleX(widthSetting->getValue() / 5.0f);
-        barSprite->setScaleY(40.0f / squareSize.height);
+        barSprite->setScaleY(40.0f / squareRect.size.height);
         auto barColor = colorSetting->getValue();
         barSprite->setColor({ barColor.r, barColor.g, barColor.b });
         barSprite->setOpacity(barColor.a);
@@ -95,8 +94,8 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
             setTitle(fmt::format("{} Guidelines", label));
             showPicker(barSprite, colorSetting, widthSetting);
         });
-        barButton->setPosition({ squareSize.width / 2.0f, 20.0f });
-        barButton->setContentSize({ squareSize.width, 40.0f });
+        barButton->setPosition({ squareRect.size.width / 2.0f, 20.0f });
+        barButton->setContentSize({ squareRect.size.width, 40.0f });
         barSprite->setPosition(barButton->getPosition());
         barButton->setID(fmt::format("{}-button", shortName));
         guidelineMenu->addChild(barButton);
@@ -139,7 +138,7 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
         snapNode->setID(fmt::format("{}-menu", settingName));
         snapMenu->addChild(snapNode);
 
-        auto snapSetting = SmartBPMTrigger::getSetting<bool>(settingName);
+        auto snapSetting = jasmine::setting::get<bool>(settingName);
         auto snapToggle = CCMenuItemExt::createTogglerWithStandardSprites(0.75f, [snapSetting](CCMenuItemToggler* sender) {
             snapSetting->setValue(!sender->m_toggled);
             sender->m_toggled = !sender->m_toggled;
@@ -164,7 +163,7 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     loopLabel->setID("loop-label");
     m_mainLayer->addChild(loopLabel);
 
-    auto spawnBPM = SmartBPMTrigger::getSetting<double>("spawn-bpm");
+    auto spawnBPM = jasmine::setting::get<double>("spawn-bpm");
 
     auto loopBPMSlider = Slider::create(nullptr, nullptr, 0.8f);
     loopBPMSlider->setPosition({ 200.0f, 60.0f });
@@ -177,11 +176,7 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     loopBPMInput->setString(fmt::format("{:.3f}", spawnBPM->getValue()));
     loopBPMInput->setCallback([loopBPMInput, loopBPMSlider, spawnBPM](const std::string& str) {
         auto value = spawnBPM->getValue();
-        #ifdef __cpp_lib_to_chars
-        std::from_chars(str.data(), str.data() + str.size(), value);
-        #else
-        if (auto num = numFromString<double>(str).ok()) value = *num;
-        #endif
+        jasmine::convert::toFloat(str, value);
         spawnBPM->setValue(std::clamp(round(value * 1000.0) / 1000.0, 0.0, 1000.0));
         loopBPMSlider->setValue(spawnBPM->getValue() / 1000.0);
     });
@@ -255,7 +250,7 @@ void SBTSettingsPopup::guidelineSnap(LevelEditorLayer* layer) {
     }
     else if (ui->m_selectedObjects && ui->m_selectedObjects->count() > 0) {
         ui->createUndoObject(UndoCommand::Transform, false);
-        if (SmartBPMTrigger::get<bool>("snap-distribute")) {
+        if (jasmine::setting::getValue<bool>("snap-distribute")) {
             for (auto object : CCArrayExt<GameObject*>(ui->m_selectedObjects)) {
                 ui->moveObject(object, getDifference(object->getPositionX()));
             }
@@ -317,7 +312,7 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
     auto sum = 0.0f;
     auto oldID = groupID;
     auto lastIndex = spawnArray.size() - 1;
-    auto spawnBPM = SmartBPMTrigger::get<float>("spawn-bpm");
+    auto spawnBPM = jasmine::setting::getValue<float>("spawn-bpm");
     for (int i = 0; i < spawnArray.size(); i++) {
         auto& innerArray = spawnArray[i];
         auto diff = i < lastIndex ? layer->timeForPos({ spawnArray[i + 1].front()->getRealPosition().x, 0.0f }, 0, 0, false, 0) - time : delay;

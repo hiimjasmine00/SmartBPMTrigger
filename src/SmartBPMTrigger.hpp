@@ -1,4 +1,6 @@
-#include <Geode/loader/SettingV3.hpp>
+#include <cocos2d.h>
+#include <Geode/GeneratedPredeclare.hpp>
+#include <Geode/loader/Types.hpp>
 
 class SmartBPMTrigger {
 public:
@@ -8,27 +10,6 @@ public:
     static cocos2d::CCDirector* getDirector();
     static GameManager* getGameManager();
     static cocos2d::CCSpriteFrameCache* getSpriteFrameCache();
-    static cocos2d::CCTextureCache* getTextureCache();
+    static std::pair<cocos2d::CCTexture2D*, cocos2d::CCRect> getSquare();
     static void refreshCache();
-
-    static std::unordered_map<std::string_view, geode::SettingV3*>& getSettings();
-
-    template <class T>
-    static geode::SettingTypeForValueType<T>::SettingType* getSetting(std::string_view key) {
-        auto& settings = getSettings();
-        if (auto it = settings.find(key); it != settings.end()) {
-            return static_cast<geode::SettingTypeForValueType<T>::SettingType*>(it->second);
-        }
-        return nullptr;
-    }
-
-    template <class T>
-    static T get(std::string_view key) {
-        if (auto setting = getSetting<T>(key)) {
-            return setting->getValue();
-        }
-        return T();
-    }
-
-    static void modify(std::map<std::string, std::shared_ptr<geode::Hook>>& hooks);
 };

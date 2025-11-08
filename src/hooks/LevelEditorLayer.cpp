@@ -1,15 +1,16 @@
-#include "../SmartBPMTrigger.hpp"
 #include "../classes/SBTTriggerData.hpp"
 #include <Geode/binding/AudioLineGuideGameObject.hpp>
 #include <Geode/binding/DrawGridLayer.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/utils/base64.hpp>
+#include <jasmine/hook.hpp>
+#include <jasmine/string.hpp>
 
 using namespace geode::prelude;
 
 class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
     static void onModify(ModifyBase<ModifyDerive<SBTLevelEditorLayer, LevelEditorLayer>>& self) {
-        SmartBPMTrigger::modify(self.m_hooks);
+        jasmine::hook::modify(self.m_hooks, "enabled");
     }
 
     void createObjectsFromSetup(gd::string& gdSetup) {
@@ -18,12 +19,12 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
 
         auto textObject = setup.find(";1,914,2,-9000,3,-1590,");
         if (textObject != std::string_view::npos) {
-            auto nextSemicolon = setup.find(";", textObject + 1);
+            auto nextSemicolon = setup.find(';', textObject + 1);
             if (nextSemicolon == std::string_view::npos) nextSemicolon = setup.size();
             auto beforeNextSemicolon = setup.substr(0, nextSemicolon);
             auto base64Text = beforeNextSemicolon.find("31,", textObject + 1);
             if (base64Text != std::string_view::npos) {
-                auto nextComma = beforeNextSemicolon.find(",", base64Text + 3);
+                auto nextComma = beforeNextSemicolon.find(',', base64Text + 3);
                 if (nextComma == std::string_view::npos) nextComma = nextSemicolon;
                 if (auto str = base64::decodeString(setup.substr(base64Text + 3, nextComma - base64Text - 3))) {
                     decodedText = std::move(str).unwrap();
@@ -36,15 +37,16 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
         auto& audioLineObjects = m_drawGridLayer->m_audioLineObjects;
         if (audioLineObjects.empty() || decodedText.empty()) return;
 
-        std::vector<int> keys;
+        std::vector<AudioLineGuideGameObject*> objects;
         for (auto& pair : audioLineObjects) {
-            keys.push_back(pair.first);
+            objects.insert(std::ranges::upper_bound(objects, pair.second, [](AudioLineGuideGameObject* a, AudioLineGuideGameObject* b) {
+                return a->m_uniqueID < b->m_uniqueID;
+            }), pair.second);
         }
-        std::ranges::sort(keys);
 
-        auto splitData = string::split(decodedText, ";");
-        for (int i = 0; i < keys.size() && i < splitData.size(); i++) {
-            auto object = audioLineObjects[keys[i]];
+        auto splitData = jasmine::string::split(decodedText, ';');
+        for (int i = 0; i < objects.size() && i < splitData.size(); i++) {
+            auto object = objects[i];
             object->setUserObject("trigger-data"_spr, SBTTriggerData::create(splitData[i], object->m_beatsPerBar));
         }
     }

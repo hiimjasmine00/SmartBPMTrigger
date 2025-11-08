@@ -8,7 +8,7 @@ public:
     bool m_changed;
     int m_beats;
 
-    static SBTTriggerData* create(const std::string& str, int beats);
+    static SBTTriggerData* create(std::string_view str, int beats);
 
     std::string getSaveString();
 };

@@ -2,11 +2,14 @@
 #include "../classes/SBTTriggerData.hpp"
 #include <alphalaneous.good_grid/include/DrawGridAPI.hpp>
 #include <Geode/binding/AudioLineGuideGameObject.hpp>
+#include <Geode/utils/cocos.hpp>
 #include <alphalaneous.good_grid/include/DrawLayers.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/binding/LevelEditorLayer.hpp>
 #include <Geode/binding/LevelSettingsObject.hpp>
 #include <Geode/modify/DrawGridLayer.hpp>
+#include <jasmine/hook.hpp>
+#include <jasmine/setting.hpp>
 
 using namespace geode::prelude;
 
@@ -14,7 +17,7 @@ static std::unordered_map<int, bool> audioLineObjects;
 
 class $modify(SBTDrawGridLayer, DrawGridLayer) {
     static void onModify(ModifyBase<ModifyDerive<SBTDrawGridLayer, DrawGridLayer>>& self) {
-        SmartBPMTrigger::modify(self.m_hooks);
+        jasmine::hook::modify(self.m_hooks, "DrawGridLayer::draw", "enabled");
     }
 
     void draw() override {
@@ -29,15 +32,15 @@ $on_mod(Loaded) {
 
     if (auto res = api.getNode<Guidelines>("guidelines")) {
         auto& guidelines = *res;
-        auto orangeColor = SmartBPMTrigger::getSetting<ccColor4B>("orange-color");
-        auto orangeWidth = SmartBPMTrigger::getSetting<float>("orange-width");
-        auto orangeSnap = SmartBPMTrigger::getSetting<bool>("snap-orange");
-        auto yellowColor = SmartBPMTrigger::getSetting<ccColor4B>("yellow-color");
-        auto yellowWidth = SmartBPMTrigger::getSetting<float>("yellow-width");
-        auto yellowSnap = SmartBPMTrigger::getSetting<bool>("snap-yellow");
-        auto greenColor = SmartBPMTrigger::getSetting<ccColor4B>("green-color");
-        auto greenWidth = SmartBPMTrigger::getSetting<float>("green-width");
-        auto greenSnap = SmartBPMTrigger::getSetting<bool>("snap-green");
+        auto orangeColor = jasmine::setting::get<ccColor4B>("orange-color");
+        auto orangeWidth = jasmine::setting::get<float>("orange-width");
+        auto orangeSnap = jasmine::setting::get<bool>("snap-orange");
+        auto yellowColor = jasmine::setting::get<ccColor4B>("yellow-color");
+        auto yellowWidth = jasmine::setting::get<float>("yellow-width");
+        auto yellowSnap = jasmine::setting::get<bool>("snap-yellow");
+        auto greenColor = jasmine::setting::get<ccColor4B>("green-color");
+        auto greenWidth = jasmine::setting::get<float>("green-width");
+        auto greenSnap = jasmine::setting::get<bool>("snap-green");
         guidelines.setPropertiesForValue([
             orangeColor, orangeWidth, orangeSnap,
             yellowColor, yellowWidth, yellowSnap,
@@ -60,12 +63,12 @@ $on_mod(Loaded) {
 
     if (auto res = api.getNode<BPMTriggers>("bpm-triggers")) {
         auto& triggers = *res;
-        auto bpmColor = SmartBPMTrigger::getSetting<ccColor4B>("beats-per-minute-color");
-        auto bpmWidth = SmartBPMTrigger::getSetting<float>("beats-per-minute-width");
-        auto bpmSnap = SmartBPMTrigger::getSetting<bool>("snap-bpm");
-        auto bpbColor = SmartBPMTrigger::getSetting<ccColor4B>("beats-per-bar-color");
-        auto bpbWidth = SmartBPMTrigger::getSetting<float>("beats-per-bar-width");
-        auto bpbSnap = SmartBPMTrigger::getSetting<bool>("snap-bpb");
+        auto bpmColor = jasmine::setting::get<ccColor4B>("beats-per-minute-color");
+        auto bpmWidth = jasmine::setting::get<float>("beats-per-minute-width");
+        auto bpmSnap = jasmine::setting::get<bool>("snap-bpm");
+        auto bpbColor = jasmine::setting::get<ccColor4B>("beats-per-bar-color");
+        auto bpbWidth = jasmine::setting::get<float>("beats-per-bar-width");
+        auto bpbSnap = jasmine::setting::get<bool>("snap-bpb");
         triggers.setPropertiesForBeats([
             bpmColor, bpmWidth, bpmSnap,
             bpbColor, bpbWidth, bpbSnap

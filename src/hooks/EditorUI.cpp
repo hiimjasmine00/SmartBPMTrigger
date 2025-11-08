@@ -3,12 +3,13 @@
 #include <Geode/binding/EditButtonBar.hpp>
 #include <Geode/binding/GameManager.hpp>
 #include <Geode/modify/EditorUI.hpp>
+#include <jasmine/hook.hpp>
 
 using namespace geode::prelude;
 
 class $modify(SBTEditorUI, EditorUI) {
     static void onModify(ModifyBase<ModifyDerive<SBTEditorUI, EditorUI>>& self) {
-        SmartBPMTrigger::modify(self.m_hooks);
+        jasmine::hook::modify(self.m_hooks, "EditorUI::createMoveMenu", "enabled");
     }
 
     void createMoveMenu() {

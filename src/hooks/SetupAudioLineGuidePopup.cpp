@@ -5,6 +5,7 @@
 #include <Geode/binding/GameToolbox.hpp>
 #include <Geode/binding/SelectSettingLayer.hpp>
 #include <Geode/modify/SetupAudioLineGuidePopup.hpp>
+#include <jasmine/hook.hpp>
 
 using namespace geode::prelude;
 
@@ -14,7 +15,7 @@ class $modify(SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup) {
     };
 
     static void onModify(ModifyBase<ModifyDerive<SBTSetupAudioLineGuidePopup, SetupAudioLineGuidePopup>>& self) {
-        SmartBPMTrigger::modify(self.m_hooks);
+        jasmine::hook::modify(self.m_hooks, "enabled");
     }
 
     bool init(AudioLineGuideGameObject* object, CCArray* objects) {

@@ -1,13 +1,14 @@
-#include "../SmartBPMTrigger.hpp"
 #include "../classes/SBTTriggerData.hpp"
 #include <Geode/binding/EffectGameObject.hpp>
 #include <Geode/modify/SetupTriggerPopup.hpp>
+#include <jasmine/hook.hpp>
+#include <jasmine/setting.hpp>
 
 using namespace geode::prelude;
 
 class $modify(SBTSetupTriggerPopup, SetupTriggerPopup) {
     static void onModify(ModifyBase<ModifyDerive<SBTSetupTriggerPopup, SetupTriggerPopup>>& self) {
-        SmartBPMTrigger::modify(self.m_hooks);
+        jasmine::hook::modify(self.m_hooks, "SetupTriggerPopup::valueChanged", "enabled");
     }
 
     void valueChanged(int property, float value) {
@@ -32,16 +33,16 @@ class $modify(SBTSetupTriggerPopup, SetupTriggerPopup) {
 
         auto& colors = data->m_colors;
         if (colors.size() < beats) {
-            auto bpmColor = SmartBPMTrigger::get<ccColor4B>("beats-per-minute-color");
-            auto bpbColor = SmartBPMTrigger::get<ccColor4B>("beats-per-bar-color");
+            auto bpmColor = jasmine::setting::getValue<ccColor4B>("beats-per-minute-color");
+            auto bpbColor = jasmine::setting::getValue<ccColor4B>("beats-per-bar-color");
             for (int i = colors.size(); i < beats; i++) {
                 colors.push_back(i == 0 ? bpmColor : bpbColor);
             }
         }
         auto& widths = data->m_widths;
         if (widths.size() < beats) {
-            auto bpmWidth = SmartBPMTrigger::get<float>("beats-per-minute-width");
-            auto bpbWidth = SmartBPMTrigger::get<float>("beats-per-bar-width");
+            auto bpmWidth = jasmine::setting::getValue<float>("beats-per-minute-width");
+            auto bpbWidth = jasmine::setting::getValue<float>("beats-per-bar-width");
             for (int i = widths.size(); i < beats; i++) {
                 widths.push_back(i == 0 ? bpmWidth : bpbWidth);
             }

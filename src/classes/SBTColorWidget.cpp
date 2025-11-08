@@ -1,7 +1,9 @@
 #include "SBTColorWidget.hpp"
 #include "../SmartBPMTrigger.hpp"
 #include <Geode/binding/Slider.hpp>
-#include <Geode/loader/Hook.hpp>
+#include <Geode/loader/Mod.hpp>
+#include <jasmine/convert.hpp>
+#include <jasmine/hook.hpp>
 
 using namespace geode::prelude;
 
@@ -92,7 +94,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_redInput->setMaxCharCount(3);
     m_redInput->setString(fmt::to_string(m_color.r));
     m_redInput->setCallback([this](const std::string& str) {
-        std::from_chars(str.data(), str.data() + str.size(), m_color.r);
+        jasmine::convert::toInt(str, m_color.r);
         updateRed(false, true, false);
     });
     m_redInput->setID("red-input");
@@ -105,7 +107,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_greenInput->setMaxCharCount(3);
     m_greenInput->setString(fmt::to_string(m_color.g));
     m_greenInput->setCallback([this](const std::string& str) {
-        std::from_chars(str.data(), str.data() + str.size(), m_color.g);
+        jasmine::convert::toInt(str, m_color.g);
         updateGreen(false, true, false);
     });
     m_greenInput->setID("green-input");
@@ -118,7 +120,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_blueInput->setMaxCharCount(3);
     m_blueInput->setString(fmt::to_string(m_color.b));
     m_blueInput->setCallback([this](const std::string& str) {
-        std::from_chars(str.data(), str.data() + str.size(), m_color.b);
+        jasmine::convert::toInt(str, m_color.b);
         updateBlue(false, true, false);
     });
     m_blueInput->setID("blue-input");
@@ -131,7 +133,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_alphaInput->setMaxCharCount(3);
     m_alphaInput->setString(fmt::to_string(m_color.a));
     m_alphaInput->setCallback([this](const std::string& str) {
-        std::from_chars(str.data(), str.data() + str.size(), m_color.a);
+        jasmine::convert::toInt(str, m_color.a);
         updateAlpha(false, true, false);
     });
     m_alphaInput->setID("alpha-input");
@@ -144,11 +146,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_widthInput->setMaxCharCount(4);
     m_widthInput->setString(fmt::format("{:.02f}", m_width));
     m_widthInput->setCallback([this](const std::string& str) {
-        #ifdef __cpp_lib_to_chars
-        std::from_chars(str.data(), str.data() + str.size(), m_width);
-        #else
-        if (auto num = numFromString<float>(str).ok()) m_width = *num;
-        #endif
+        jasmine::convert::toFloat(str, m_width);
         m_width = std::clamp(m_width, 0.0f, 5.0f);
         updateWidth(false, true, false);
     });
@@ -222,22 +220,22 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
 
     m_redNode = CCDrawNode::create();
     m_redNode->setPosition({ 2.0f, 4.0f });
-    m_redNode->setID(GEODE_MOD_ID "/red-node");
+    m_redNode->setID("red-node"_spr);
     m_redSlider->m_groove->addChild(m_redNode, -1);
 
     m_greenNode = CCDrawNode::create();
     m_greenNode->setPosition({ 2.0f, 4.0f });
-    m_greenNode->setID(GEODE_MOD_ID "/green-node");
+    m_greenNode->setID("green-node"_spr);
     m_greenSlider->m_groove->addChild(m_greenNode, -1);
 
     m_blueNode = CCDrawNode::create();
     m_blueNode->setPosition({ 2.0f, 4.0f });
-    m_blueNode->setID(GEODE_MOD_ID "/blue-node");
+    m_blueNode->setID("blue-node"_spr);
     m_blueSlider->m_groove->addChild(m_blueNode, -1);
 
     m_alphaNode = CCDrawNode::create();
     m_alphaNode->setPosition({ 2.0f, 4.0f });
-    m_alphaNode->setID(GEODE_MOD_ID "/alpha-node");
+    m_alphaNode->setID("alpha-node"_spr);
     m_alphaSlider->m_groove->addChild(m_alphaNode, -1);
 
     m_widthSprite = CCSprite::create("sliderBar2.png");
@@ -246,7 +244,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     ccTexParams texParams = { GL_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT };
     m_widthSprite->getTexture()->setTexParameters(&texParams);
     m_widthSprite->setTextureRect({ 0.0f, 0.0f, m_widthSlider->m_width, m_widthSlider->m_height });
-    m_widthSprite->setID(GEODE_MOD_ID "/width-sprite");
+    m_widthSprite->setID("width-sprite"_spr);
     m_widthSlider->m_groove->addChild(m_widthSprite, -1);
 
     updateNodes(false, false, false, false);
@@ -477,18 +475,10 @@ void SBTColorWidget::prepareActions(bool show) {
 
 void SBTColorWidget::onEnter() {
     CCLayer::onEnter();
-    if (auto hook = SmartBPMTrigger::drawNodeHook) {
-        if (auto err = hook->enable().err()) {
-            log::error("Failed to enable cocos2d::CCDrawNode::draw hook: {}", *err);
-        }
-    }
+    jasmine::hook::toggle(SmartBPMTrigger::drawNodeHook, true);
 }
 
 void SBTColorWidget::onExit() {
     CCLayer::onExit();
-    if (auto hook = SmartBPMTrigger::drawNodeHook) {
-        if (auto err = hook->disable().err()) {
-            log::error("Failed to disable cocos2d::CCDrawNode::draw hook: {}", *err);
-        }
-    }
+    jasmine::hook::toggle(SmartBPMTrigger::drawNodeHook, false);
 }

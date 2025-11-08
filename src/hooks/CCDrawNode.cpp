@@ -1,15 +1,12 @@
 #include "../SmartBPMTrigger.hpp"
 #include <Geode/modify/CCDrawNode.hpp>
-#include <ranges>
+#include <jasmine/hook.hpp>
 
 using namespace geode::prelude;
 
 class $modify(SBTDrawNode, CCDrawNode) {
     static void onModify(ModifyBase<ModifyDerive<SBTDrawNode, CCDrawNode>>& self) {
-        for (auto& hook : std::views::values(self.m_hooks)) {
-            hook->setAutoEnable(false);
-            SmartBPMTrigger::drawNodeHook = hook.get();
-        }
+        SmartBPMTrigger::drawNodeHook = jasmine::hook::get(self.m_hooks, "cocos2d::CCDrawNode::draw", false);
     }
 
     bool preRender() {

@@ -2,6 +2,7 @@
 #include "SBTTriggerData.hpp"
 #include "../SmartBPMTrigger.hpp"
 #include <Geode/binding/ButtonSprite.hpp>
+#include <jasmine/setting.hpp>
 
 using namespace geode::prelude;
 
@@ -37,15 +38,12 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
     m_barSpriteMenu->setID("bar-sprite-menu");
     m_mainLayer->addChild(m_barSpriteMenu);
 
-    auto squareTexture = SmartBPMTrigger::getTextureCache()->addImage(GEODE_MOD_ID "/square.png", false);
-    auto squareSize = squareTexture ? squareTexture->m_tContentSize : CCSize { 2.0f, 2.0f };
-    squareSize /= SmartBPMTrigger::getDirector()->getContentScaleFactor();
-    CCRect squareRect = { { 0.0f, 0.0f }, squareSize };
+    auto [squareTexture, squareRect] = SmartBPMTrigger::getSquare();
 
     m_barSprite = CCSprite::createWithTexture(squareTexture, squareRect);
     m_barSprite->setPosition({ 90.0f, 150.0f });
     m_barSprite->setScaleX(0.0f);
-    m_barSprite->setScaleY(200.0f / squareSize.height);
+    m_barSprite->setScaleY(200.0f / squareRect.size.height);
     m_barSprite->setVisible(false);
     m_barSprite->setColor({ 0, 0, 0 });
     m_barSprite->setOpacity(0);
@@ -65,7 +63,7 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
         auto& [r, g, b, a] = m_colors[i];
         auto barSprite = CCSprite::createWithTexture(squareTexture, squareRect);
         barSprite->setScaleX(m_widths[i] / 5.0f);
-        barSprite->setScaleY(200.0f / squareSize.height);
+        barSprite->setScaleY(200.0f / squareRect.size.height);
         barSprite->setColor({ r, g, b });
         barSprite->setOpacity(a);
 
@@ -91,9 +89,9 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
             })));
             m_colorWidget->prepareActions(true);
         });
-        barSprite->setPositionX(squareSize.width / 2.0f);
+        barSprite->setPositionX(squareRect.size.width / 2.0f);
         barButton->m_scaleMultiplier = 1.0f;
-        barButton->setContentSize({ squareSize.width, 200.0f });
+        barButton->setContentSize({ squareRect.size.width, 200.0f });
         barButton->setID(fmt::format("bar-button-{}", i + 1));
         barButton->setTag(i);
         m_barSpriteMenu->addChild(barButton);
@@ -187,10 +185,10 @@ bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
     m_buttonMenu->addChild(saveButton);
 
     auto resetButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Reset", 0.8f), [this](auto) {
-        auto bpmColor = SmartBPMTrigger::get<ccColor4B>("beats-per-minute-color");
-        auto bpbColor = SmartBPMTrigger::get<ccColor4B>("beats-per-bar-color");
-        auto bpmWidth = SmartBPMTrigger::get<float>("beats-per-minute-width");
-        auto bpbWidth = SmartBPMTrigger::get<float>("beats-per-bar-width");
+        auto bpmColor = jasmine::setting::getValue<ccColor4B>("beats-per-minute-color");
+        auto bpbColor = jasmine::setting::getValue<ccColor4B>("beats-per-bar-color");
+        auto bpmWidth = jasmine::setting::getValue<float>("beats-per-minute-width");
+        auto bpbWidth = jasmine::setting::getValue<float>("beats-per-bar-width");
         if (m_index >= 0) {
             auto defaultColor = m_index == 0 ? bpmColor : bpbColor;
             auto defaultWidth = m_index == 0 ? bpmWidth : bpbWidth;
