@@ -31,7 +31,7 @@ $on_mod(Loaded) {
     auto& api = DrawGridAPI::get();
 
     if (auto res = api.getNode<Guidelines>("guidelines")) {
-        auto& guidelines = *res;
+        auto& guidelines = res.unwrap();
         auto orangeColor = jasmine::setting::get<ccColor4B>("orange-color");
         auto orangeWidth = jasmine::setting::get<float>("orange-width");
         auto orangeSnap = jasmine::setting::get<bool>("snap-orange");
@@ -62,7 +62,7 @@ $on_mod(Loaded) {
     }
 
     if (auto res = api.getNode<BPMTriggers>("bpm-triggers")) {
-        auto& triggers = *res;
+        auto& triggers = res.unwrap();
         auto bpmColor = jasmine::setting::get<ccColor4B>("beats-per-minute-color");
         auto bpmWidth = jasmine::setting::get<float>("beats-per-minute-width");
         auto bpmSnap = jasmine::setting::get<bool>("snap-bpm");
