@@ -14,7 +14,7 @@ using namespace geode::prelude;
 
 SBTSettingsPopup* SBTSettingsPopup::create(LevelEditorLayer* layer) {
     auto ret = new SBTSettingsPopup();
-    if (ret->initAnchored(400.0f, 290.0f, layer)) {
+    if (ret->init(layer)) {
         ret->autorelease();
         return ret;
     }
@@ -22,7 +22,9 @@ SBTSettingsPopup* SBTSettingsPopup::create(LevelEditorLayer* layer) {
     return nullptr;
 }
 
-bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
+bool SBTSettingsPopup::init(LevelEditorLayer* layer) {
+    if (!Popup::init(400.0f, 290.0f)) return false;
+
     setID("SBTSettingsPopup");
     setTitle("Smart BPM Trigger");
     m_title->setID("smart-bpm-trigger-title");
@@ -176,7 +178,7 @@ bool SBTSettingsPopup::setup(LevelEditorLayer* layer) {
     loopBPMInput->setString(fmt::format("{:.3f}", spawnBPM->getValue()));
     loopBPMInput->setCallback([loopBPMInput, loopBPMSlider, spawnBPM](const std::string& str) {
         auto value = spawnBPM->getValue();
-        jasmine::convert::toFloat(str, value);
+        jasmine::convert::to(str, value);
         spawnBPM->setValue(std::clamp(round(value * 1000.0) / 1000.0, 0.0, 1000.0));
         loopBPMSlider->setValue(spawnBPM->getValue() / 1000.0);
     });
@@ -301,7 +303,7 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
         }
     }
 
-    auto groupID = layer->getNextFreeGroupID(nullptr);
+    auto groupID = layer->getNextFreeGroupID({});
     auto firstID = groupID;
     auto mainTrigger = static_cast<EffectGameObject*>(ui->createObject(1268, { x, y + 90.0f }));
     mainTrigger->setTargetID(groupID);
@@ -322,7 +324,7 @@ void SBTSettingsPopup::createLoop(LevelEditorLayer* layer) {
             layer->addObjectToGroup(object, oldID);
             if (j == 0) {
                 delay = i != lastIndex ? diff - sum : std::max(60.0f / spawnBPM - sum, 0.0f);
-                groupID = i != lastIndex ? layer->getNextFreeGroupID(nullptr) : firstID;
+                groupID = i != lastIndex ? layer->getNextFreeGroupID({}) : firstID;
                 auto spawnTrigger = static_cast<SpawnTriggerGameObject*>(ui->createObject(1268, { object->getRealPosition().x, y + 60.0f }));
                 layer->addObjectToGroup(spawnTrigger, oldID);
                 spawnTrigger->m_spawnDelay = delay;

@@ -3,7 +3,7 @@
 
 class SBTTriggerData;
 
-class SBTOptionsPopup : public geode::Popup<SBTTriggerData*> {
+class SBTOptionsPopup : public geode::Popup {
 protected:
     SBTTriggerData* m_triggerData;
     geode::Ref<SBTColorWidget> m_colorWidget;
@@ -14,7 +14,7 @@ protected:
     std::vector<float> m_widths;
     int m_index;
 
-    bool setup(SBTTriggerData*) override;
+    bool init(SBTTriggerData*);
     void onClose(cocos2d::CCObject*) override;
     void closeBar();
 public:

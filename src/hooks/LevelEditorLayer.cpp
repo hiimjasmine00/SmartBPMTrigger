@@ -44,7 +44,7 @@ class $modify(SBTLevelEditorLayer, LevelEditorLayer) {
             }), pair.second);
         }
 
-        auto splitData = jasmine::string::split(decodedText, ';');
+        auto splitData = string::splitView(decodedText, ";");
         for (int i = 0; i < objects.size() && i < splitData.size(); i++) {
             auto object = objects[i];
             object->setUserObject("trigger-data"_spr, SBTTriggerData::create(splitData[i], object->m_beatsPerBar));

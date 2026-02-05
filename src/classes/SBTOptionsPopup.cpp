@@ -8,7 +8,7 @@ using namespace geode::prelude;
 
 SBTOptionsPopup* SBTOptionsPopup::create(SBTTriggerData* triggerData) {
     auto popup = new SBTOptionsPopup();
-    if (popup->initAnchored(400.0f, 290.0f, triggerData)) {
+    if (popup->init(triggerData)) {
         popup->autorelease();
         return popup;
     }
@@ -16,7 +16,9 @@ SBTOptionsPopup* SBTOptionsPopup::create(SBTTriggerData* triggerData) {
     return nullptr;
 }
 
-bool SBTOptionsPopup::setup(SBTTriggerData* triggerData) {
+bool SBTOptionsPopup::init(SBTTriggerData* triggerData) {
+    if (!Popup::init(400.0f, 290.0f)) return false;
+
     setID("SBTOptionsPopup");
     setTitle("Trigger Settings");
     m_title->setID("trigger-settings-title");

@@ -5,7 +5,7 @@ class SBTColorWidget : public cocos2d::CCLayer, public cocos2d::extension::Color
 protected:
     cocos2d::ccColor4B m_color;
     float m_width;
-    std::function<void(const cocos2d::ccColor4B&, float)> m_callback;
+    geode::Function<void(const cocos2d::ccColor4B&, float)> m_callback;
     cocos2d::extension::CCControlColourPicker* m_colorPicker;
     geode::Ref<cocos2d::CCArray> m_opacityNodes;
     cocos2d::CCLabelBMFont* m_redLabel;
@@ -30,7 +30,7 @@ protected:
     cocos2d::CCSprite* m_widthSprite;
     bool m_disableDelegate;
 
-    bool init(const cocos2d::ccColor4B&, float, std::function<void(const cocos2d::ccColor4B&, float)>);
+    bool init(const cocos2d::ccColor4B&, float, geode::Function<void(const cocos2d::ccColor4B&, float)>);
     void updatePicker();
     void updateRed(bool, bool, bool);
     void updateGreen(bool, bool, bool);
@@ -39,7 +39,7 @@ protected:
     void updateWidth(bool, bool, bool);
     void updateNodes(bool, bool, bool, bool);
 public:
-    static SBTColorWidget* create(const cocos2d::ccColor4B& color, float width, std::function<void(const cocos2d::ccColor4B&, float)> callback);
+    static SBTColorWidget* create(const cocos2d::ccColor4B& color, float width, geode::Function<void(const cocos2d::ccColor4B&, float)> callback);
 
     const cocos2d::ccColor4B& getColor() const {
         return m_color;

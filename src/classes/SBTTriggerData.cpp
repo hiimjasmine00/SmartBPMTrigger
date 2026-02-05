@@ -1,7 +1,8 @@
 #include "SBTTriggerData.hpp"
+#include <Geode/utils/string.hpp>
+#include <Geode/utils/StringBuffer.hpp>
 #include <jasmine/convert.hpp>
 #include <jasmine/setting.hpp>
-#include <jasmine/string.hpp>
 
 using namespace geode::prelude;
 
@@ -15,7 +16,7 @@ SBTTriggerData* SBTTriggerData::create(std::string_view str, int beats) {
     auto bpbWidth = jasmine::setting::getValue<float>("beats-per-bar-width");
 
     if (!str.empty()) {
-        auto split = jasmine::string::split(str, ',');
+        auto split = string::splitView(str, ",");
 
         auto hasChanged = false;
         for (auto it = split.begin(); it < split.end() - 1; it += 2) {
@@ -26,31 +27,31 @@ SBTTriggerData* SBTTriggerData::create(std::string_view str, int beats) {
 
             switch (type[0]) {
                 case '1': {
-                    auto colors = jasmine::string::split(value, '~');
+                    auto colors = string::splitView(value, "~");
                     for (int i = 0; i < beats && i < colors.size(); i++) {
                         auto& color = colors[i];
-                        auto hexColor = jasmine::convert::getInt<uint32_t>(color).value_or(0);
+                        auto hexColor = jasmine::convert::getOr(color, 0u);
                         ret->m_colors.emplace_back((hexColor >> 24) & 255, (hexColor >> 16) & 255, (hexColor >> 8) & 255, hexColor & 255);
                     }
                     break;
                 }
                 case '2': {
-                    auto widths = jasmine::string::split(value, '~');
+                    auto widths = string::splitView(value, "~");
                     for (int i = 0; i < beats && i < widths.size(); i++) {
                         auto& width = widths[i];
-                        auto widthValue = jasmine::convert::getFloat<float>(width).value_or(0.0f);
+                        auto widthValue = jasmine::convert::getOr(width, 0.0f);
                         ret->m_widths.push_back(widthValue);
                     }
                     break;
                 }
                 case '3': {
-                    auto disabledValue = jasmine::convert::getInt<uint32_t>(value).value_or(0);
+                    auto disabledValue = jasmine::convert::getOr(value, 0u);
                     ret->m_disabled = disabledValue > 0;
                     break;
                 }
                 case '4': {
                     hasChanged = true;
-                    auto changedValue = jasmine::convert::getInt<uint32_t>(value).value_or(0);
+                    auto changedValue = jasmine::convert::getOr(value, 0u);
                     ret->m_changed = changedValue > 0;
                     break;
                 }
@@ -101,35 +102,35 @@ SBTTriggerData* SBTTriggerData::create(std::string_view str, int beats) {
 }
 
 std::string SBTTriggerData::getSaveString() {
-    fmt::memory_buffer ret;
+    StringBuffer ret;
 
     if (!m_colors.empty()) {
-        fmt::format_to(std::back_inserter(ret), "1,");
+        ret.append("1,");
         for (int i = 0; i < m_beats; i++) {
-            if (i > 0) ret.push_back('~');
+            if (i > 0) ret.append('~');
             auto& [r, g, b, a] = m_colors[i];
-            fmt::format_to(std::back_inserter(ret), "{}", fmt::to_string<uint32_t>(r << 24 | g << 16 | b << 8 | a));
+            ret.append(fmt::to_string<uint32_t>(r << 24 | g << 16 | b << 8 | a));
         }
     }
 
     if (!m_widths.empty()) {
-        if (ret.size() > 0) ret.push_back(',');
-        fmt::format_to(std::back_inserter(ret), "2,");
+        if (ret.size() > 0) ret.append(',');
+        ret.append("2,");
         for (int i = 0; i < m_beats; i++) {
-            if (i > 0) ret.push_back('~');
-            fmt::format_to(std::back_inserter(ret), "{}", m_widths[i]);
+            if (i > 0) ret.append('~');
+            ret.append(fmt::to_string(m_widths[i]));
         }
     }
 
     if (m_disabled) {
-        if (ret.size() > 0) ret.push_back(',');
-        fmt::format_to(std::back_inserter(ret), "3,1");
+        if (ret.size() > 0) ret.append(',');
+        ret.append("3,1");
     }
 
     if (m_changed) {
-        if (ret.size() > 0) ret.push_back(',');
-        fmt::format_to(std::back_inserter(ret), "4,1");
+        if (ret.size() > 0) ret.append(',');
+        ret.append("4,1");
     }
 
-    return fmt::to_string(ret);
+    return ret.str();
 }

@@ -1,4 +1,7 @@
 # Smart BPM Trigger Changelog
+## v1.2.2 (2026-02-05)
+- Ported to Geometry Dash v2.208 / Geode SDK v5.0.0
+
 ## v1.2.1 (2025-08-15)
 - Fixed some textboxes not respecting their maximum values
 - Repositioned the "Save" and "Reset" buttons in the BPM trigger color popup

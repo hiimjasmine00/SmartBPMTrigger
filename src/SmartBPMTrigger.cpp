@@ -1,5 +1,6 @@
 #include "SmartBPMTrigger.hpp"
 #include <Geode/binding/GameManager.hpp>
+#include <Geode/loader/GameEvent.hpp>
 #include <Geode/loader/Mod.hpp>
 
 using namespace geode::prelude;
@@ -34,7 +35,7 @@ std::pair<CCTexture2D*, CCRect> SmartBPMTrigger::getSquare() {
     return { squareTexture, { { 0.0f, 0.0f }, squareSize } };
 }
 
-void SmartBPMTrigger::refreshCache() {
+$on_game(TexturesUnloaded) {
     spriteFrameCache = nullptr;
     textureCache = nullptr;
 }

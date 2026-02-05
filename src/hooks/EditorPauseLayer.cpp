@@ -4,6 +4,7 @@
 #include <Geode/binding/LevelEditorLayer.hpp>
 #include <Geode/binding/TextGameObject.hpp>
 #include <Geode/modify/EditorPauseLayer.hpp>
+#include <Geode/utils/StringBuffer.hpp>
 #include <jasmine/hook.hpp>
 
 using namespace geode::prelude;
@@ -37,14 +38,14 @@ class $modify(SBTEditorPauseLayer, EditorPauseLayer) {
             }), pair.second);
         }
 
-        fmt::memory_buffer saveString;
+        StringBuffer saveString;
         for (auto it = objects.begin(); it < objects.end(); ++it) {
-            if (it > objects.begin()) saveString.push_back(';');
+            if (it > objects.begin()) saveString.append(';');
             if (auto triggerData = static_cast<SBTTriggerData*>((*it)->getUserObject("trigger-data"_spr))) {
-                fmt::format_to(std::back_inserter(saveString), "{}", triggerData->getSaveString());
+                saveString.append(triggerData->getSaveString());
             }
         }
-        saveObject->m_text = fmt::to_string(saveString);
+        saveObject->m_text = saveString.str();
 
         EditorPauseLayer::saveLevel();
     }

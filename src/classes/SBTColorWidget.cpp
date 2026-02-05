@@ -7,7 +7,7 @@
 
 using namespace geode::prelude;
 
-SBTColorWidget* SBTColorWidget::create(const ccColor4B& color, float width, std::function<void(const ccColor4B&, float)> callback) {
+SBTColorWidget* SBTColorWidget::create(const ccColor4B& color, float width, Function<void(const ccColor4B&, float)> callback) {
     auto ret = new SBTColorWidget();
     if (ret->init(color, width, std::move(callback))) {
         ret->autorelease();
@@ -17,7 +17,7 @@ SBTColorWidget* SBTColorWidget::create(const ccColor4B& color, float width, std:
     return nullptr;
 }
 
-bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<void(const ccColor4B&, float)> callback) {
+bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(const ccColor4B&, float)> callback) {
     if (!CCLayer::init()) return false;
 
     setID("SBTColorWidget");
@@ -94,7 +94,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_redInput->setMaxCharCount(3);
     m_redInput->setString(fmt::to_string(m_color.r));
     m_redInput->setCallback([this](const std::string& str) {
-        jasmine::convert::toInt(str, m_color.r);
+        jasmine::convert::to(str, m_color.r);
         updateRed(false, true, false);
     });
     m_redInput->setID("red-input");
@@ -107,7 +107,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_greenInput->setMaxCharCount(3);
     m_greenInput->setString(fmt::to_string(m_color.g));
     m_greenInput->setCallback([this](const std::string& str) {
-        jasmine::convert::toInt(str, m_color.g);
+        jasmine::convert::to(str, m_color.g);
         updateGreen(false, true, false);
     });
     m_greenInput->setID("green-input");
@@ -120,7 +120,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_blueInput->setMaxCharCount(3);
     m_blueInput->setString(fmt::to_string(m_color.b));
     m_blueInput->setCallback([this](const std::string& str) {
-        jasmine::convert::toInt(str, m_color.b);
+        jasmine::convert::to(str, m_color.b);
         updateBlue(false, true, false);
     });
     m_blueInput->setID("blue-input");
@@ -133,7 +133,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_alphaInput->setMaxCharCount(3);
     m_alphaInput->setString(fmt::to_string(m_color.a));
     m_alphaInput->setCallback([this](const std::string& str) {
-        jasmine::convert::toInt(str, m_color.a);
+        jasmine::convert::to(str, m_color.a);
         updateAlpha(false, true, false);
     });
     m_alphaInput->setID("alpha-input");
@@ -146,7 +146,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, std::function<voi
     m_widthInput->setMaxCharCount(4);
     m_widthInput->setString(fmt::format("{:.02f}", m_width));
     m_widthInput->setCallback([this](const std::string& str) {
-        jasmine::convert::toFloat(str, m_width);
+        jasmine::convert::to(str, m_width);
         m_width = std::clamp(m_width, 0.0f, 5.0f);
         updateWidth(false, true, false);
     });

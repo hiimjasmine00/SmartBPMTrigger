@@ -9,38 +9,34 @@ class $modify(SBTDrawNode, CCDrawNode) {
         SmartBPMTrigger::drawNodeHook = jasmine::hook::get(self.m_hooks, "cocos2d::CCDrawNode::draw", false);
     }
 
-    bool preRender() {
+    void draw() {
         auto a = getOpacity() / 255.0f;
-        auto ret = false;
-        if (a != 1.0f) {
-            for (int i = 0; i < m_nBufferCount; i++) {
-                auto& oldColor = m_pBuffer[i].colors;
-                ccColor4B newColor(oldColor.r * a, oldColor.g * a, oldColor.b * a, oldColor.a * a);
-                if (oldColor != newColor) {
-                    oldColor = newColor;
-                    ret = true;
-                }
-            }
-            if (!m_bDirty) m_bDirty = ret;
-        }
-        return ret;
-    }
+        if (a == 1.0f) return CCDrawNode::draw();
 
-    void postRender(const std::vector<ccV2F_C4B_T2F>& vertices) {
+        std::vector<ccV2F_C4B_T2F> vertices(m_pBuffer, m_pBuffer + m_nBufferCount);
+
+        auto result = false;
         for (int i = 0; i < m_nBufferCount; i++) {
             auto& oldColor = m_pBuffer[i].colors;
-            auto& newColor = vertices[i].colors;
+            ccColor4B newColor(oldColor.r * a, oldColor.g * a, oldColor.b * a, oldColor.a * a);
             if (oldColor != newColor) {
                 oldColor = newColor;
-                m_bDirty = true;
+                result = true;
             }
         }
-    }
+        if (!m_bDirty) m_bDirty = result;
 
-    void draw() {
-        std::vector<ccV2F_C4B_T2F> vertices(m_pBuffer, m_pBuffer + m_nBufferCount);
-        auto result = preRender();
         CCDrawNode::draw();
-        if (result) postRender(vertices);
+
+        if (result) {
+            for (int i = 0; i < m_nBufferCount; i++) {
+                auto& oldColor = m_pBuffer[i].colors;
+                auto& newColor = vertices[i].colors;
+                if (oldColor != newColor) {
+                    oldColor = newColor;
+                    m_bDirty = true;
+                }
+            }
+        }
     }
 };

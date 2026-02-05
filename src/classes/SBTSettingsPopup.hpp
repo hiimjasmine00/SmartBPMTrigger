@@ -2,7 +2,7 @@
 #include <Geode/loader/SettingV3.hpp>
 #include <Geode/ui/Popup.hpp>
 
-class SBTSettingsPopup : public geode::Popup<LevelEditorLayer*> {
+class SBTSettingsPopup : public geode::Popup {
 protected:
     geode::Ref<SBTColorWidget> m_colorWidget;
     geode::Ref<cocos2d::CCArray> m_otherNodes;
@@ -11,7 +11,7 @@ protected:
     geode::Color4BSettingV3* m_colorSetting;
     geode::FloatSettingV3* m_widthSetting;
 
-    bool setup(LevelEditorLayer*) override;
+    bool init(LevelEditorLayer*);
     void guidelineSnap(LevelEditorLayer*);
     void createLoop(LevelEditorLayer*);
     void showPicker(cocos2d::CCSprite*, geode::Color4BSettingV3*, geode::FloatSettingV3*);
