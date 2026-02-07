@@ -1,5 +1,5 @@
 # Smart BPM Trigger Changelog
-## v1.2.2 (2026-02-05)
+## v1.2.2 (2026-02-06)
 - Ported to Geometry Dash v2.208 / Geode SDK v5.0.0
 
 ## v1.2.1 (2025-08-15)

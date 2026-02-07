@@ -38,17 +38,18 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     m_colorPicker->setID("color-picker");
     addChild(m_colorPicker);
 
-    m_opacityNodes = CCArray::create();
     for (auto child : CCArrayExt<CCNode*>(m_colorPicker->getChildren())) {
         if (!child->isVisible()) continue;
         if (exact_cast<CCSpriteBatchNode*>(child)) {
-            m_opacityNodes->addObjectsFromArray(child->getChildren());
+            for (auto grandchild : CCArrayExt<CCNodeRGBA*>(child->getChildren())) {
+                m_opacityNodes.push_back(grandchild);
+            }
         }
-        else if (typeinfo_cast<CCNodeRGBA*>(child)) {
-            m_opacityNodes->addObject(child);
+        else if (auto opacityChild = typeinfo_cast<CCNodeRGBA*>(child)) {
+            m_opacityNodes.push_back(opacityChild);
             for (auto grandchild : CCArrayExt<CCNode*>(child->getChildren())) {
-                if (typeinfo_cast<CCNodeRGBA*>(grandchild)) {
-                    m_opacityNodes->addObject(grandchild);
+                if (auto opacityGrandchild = typeinfo_cast<CCNodeRGBA*>(grandchild)) {
+                    m_opacityNodes.push_back(opacityGrandchild);
                 }
             }
         }
@@ -303,7 +304,7 @@ void SBTColorWidget::updateAlpha(bool values, bool input, bool slider) {
     if (!input) m_alphaInput->setString(fmt::to_string(m_color.a));
     if (!slider) m_alphaSlider->setValue(m_color.a / 255.0f);
 
-    for (auto node : CCArrayExt<CCNodeRGBA*>(m_opacityNodes)) {
+    for (auto node : m_opacityNodes) {
         node->setOpacity(m_color.a);
     }
 
@@ -427,7 +428,7 @@ void SBTColorWidget::prepareActions(bool show) {
         })));
     }
     uint8_t alpha = show ? m_color.a : 0;
-    for (auto node : CCArrayExt<CCNodeRGBA*>(m_opacityNodes)) {
+    for (auto node : m_opacityNodes) {
         prepareNode(node, alpha, show);
     }
     if (show) alpha = 255;

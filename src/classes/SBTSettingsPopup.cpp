@@ -225,11 +225,11 @@ bool SBTSettingsPopup::init(LevelEditorLayer* layer) {
     bottomMenu->setOpacity(127 + (objectSelected * 128));
     bottomMenu->updateLayout();
 
-    m_otherNodes = CCArray::create();
-    m_otherNodes->addObjectsFromArray(m_mainLayer->getChildren());
-    m_otherNodes->removeObject(m_buttonMenu);
-    m_otherNodes->removeObject(m_title);
-    m_otherNodes->removeObject(m_bgSprite);;
+    for (auto child : CCArrayExt<CCNode*>(m_mainLayer->getChildren())) {
+        if (child != m_buttonMenu && child != m_title && child != m_bgSprite) {
+            m_otherNodes.push_back(child);
+        }
+    }
 
     return true;
 }
@@ -348,7 +348,7 @@ void SBTSettingsPopup::showPicker(CCSprite* barSprite, Color4BSettingV3* colorSe
     m_colorWidget->setValues(colorSetting->getValue(), widthSetting->getValue());
     m_mainLayer->addChild(m_colorWidget);
     m_mainLayer->addChild(m_barSprite);
-    for (auto node : CCArrayExt<CCNode*>(m_otherNodes)) {
+    for (auto node : m_otherNodes) {
         node->setVisible(false);
     }
     auto normalImage = static_cast<CCSprite*>(m_closeBtn->getNormalImage());
@@ -363,7 +363,7 @@ void SBTSettingsPopup::onClose(CCObject* sender) {
         m_widthSetting = nullptr;
         m_colorWidget->removeFromParent();
         m_barSprite->removeFromParent();
-        for (auto node : CCArrayExt<CCNode*>(m_otherNodes)) {
+        for (auto node : m_otherNodes) {
             node->setVisible(true);
         }
         auto normalImage = static_cast<CCSprite*>(m_closeBtn->getNormalImage());

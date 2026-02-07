@@ -7,7 +7,7 @@ protected:
     float m_width;
     geode::Function<void(const cocos2d::ccColor4B&, float)> m_callback;
     cocos2d::extension::CCControlColourPicker* m_colorPicker;
-    geode::Ref<cocos2d::CCArray> m_opacityNodes;
+    std::vector<cocos2d::CCNodeRGBA*> m_opacityNodes;
     cocos2d::CCLabelBMFont* m_redLabel;
     cocos2d::CCLabelBMFont* m_greenLabel;
     cocos2d::CCLabelBMFont* m_blueLabel;

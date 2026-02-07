@@ -5,7 +5,7 @@
 class SBTSettingsPopup : public geode::Popup {
 protected:
     geode::Ref<SBTColorWidget> m_colorWidget;
-    geode::Ref<cocos2d::CCArray> m_otherNodes;
+    std::vector<cocos2d::CCNode*> m_otherNodes;
     geode::Ref<cocos2d::CCSprite> m_barSprite;
     cocos2d::CCSprite* m_barButtonSprite;
     geode::Color4BSettingV3* m_colorSetting;
