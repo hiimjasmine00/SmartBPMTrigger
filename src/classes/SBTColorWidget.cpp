@@ -41,6 +41,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     for (auto child : CCArrayExt<CCNode*>(m_colorPicker->getChildren())) {
         if (!child->isVisible()) continue;
         if (exact_cast<CCSpriteBatchNode*>(child)) {
+            m_opacityNodes.reserve(m_opacityNodes.size() + child->getChildrenCount());
             for (auto grandchild : CCArrayExt<CCNodeRGBA*>(child->getChildren())) {
                 m_opacityNodes.push_back(grandchild);
             }

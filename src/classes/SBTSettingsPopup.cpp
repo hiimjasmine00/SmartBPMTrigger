@@ -225,6 +225,7 @@ bool SBTSettingsPopup::init(LevelEditorLayer* layer) {
     bottomMenu->setOpacity(127 + (objectSelected * 128));
     bottomMenu->updateLayout();
 
+    m_otherNodes.reserve(m_mainLayer->getChildrenCount() - 3);
     for (auto child : CCArrayExt<CCNode*>(m_mainLayer->getChildren())) {
         if (child != m_buttonMenu && child != m_title && child != m_bgSprite) {
             m_otherNodes.push_back(child);
