@@ -13,7 +13,7 @@
 
 using namespace geode::prelude;
 
-static std::unordered_map<int, bool> audioLineObjects;
+std::unordered_map<int, bool> audioLineObjects;
 
 class $modify(SBTDrawGridLayer, DrawGridLayer) {
     static void onModify(ModifyBase<ModifyDerive<SBTDrawGridLayer, DrawGridLayer>>& self) {
