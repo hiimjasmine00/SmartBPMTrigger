@@ -2,7 +2,6 @@
 #include "../SmartBPMTrigger.hpp"
 #include <Geode/binding/Slider.hpp>
 #include <Geode/loader/Mod.hpp>
-#include <jasmine/convert.hpp>
 #include <jasmine/hook.hpp>
 
 using namespace geode::prelude;
@@ -28,10 +27,8 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     m_width = width;
     m_callback = std::move(callback);
 
-    auto loader = Loader::get();
-
     m_colorPicker = CCControlColourPicker::colourPicker();
-    m_colorPicker->setPosition({ 100.0f, 205.0f - loader->isModLoaded("flow.betterpicker") * 10.0f });
+    m_colorPicker->setPosition({ 100.0f, 205.0f - Loader::get()->isModLoaded("flow.betterpicker") * 10.0f });
     m_colorPicker->setScale(0.8f);
     m_colorPicker->setColorValue({ m_color.r, m_color.g, m_color.b });
     m_colorPicker->setDelegate(this);
@@ -95,10 +92,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     m_redInput->setFilter("0123456789");
     m_redInput->setMaxCharCount(3);
     m_redInput->setString(fmt::to_string(m_color.r));
-    m_redInput->setCallback([this](const std::string& str) {
-        jasmine::convert::to(str, m_color.r);
-        updateRed(false, true, false);
-    });
+    m_redInput->setDelegate(this, 0);
     m_redInput->setID("red-input");
     addChild(m_redInput);
 
@@ -108,10 +102,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     m_greenInput->setFilter("0123456789");
     m_greenInput->setMaxCharCount(3);
     m_greenInput->setString(fmt::to_string(m_color.g));
-    m_greenInput->setCallback([this](const std::string& str) {
-        jasmine::convert::to(str, m_color.g);
-        updateGreen(false, true, false);
-    });
+    m_greenInput->setDelegate(this, 1);
     m_greenInput->setID("green-input");
     addChild(m_greenInput);
 
@@ -121,10 +112,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     m_blueInput->setFilter("0123456789");
     m_blueInput->setMaxCharCount(3);
     m_blueInput->setString(fmt::to_string(m_color.b));
-    m_blueInput->setCallback([this](const std::string& str) {
-        jasmine::convert::to(str, m_color.b);
-        updateBlue(false, true, false);
-    });
+    m_blueInput->setDelegate(this, 2);
     m_blueInput->setID("blue-input");
     addChild(m_blueInput);
 
@@ -134,10 +122,7 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     m_alphaInput->setFilter("0123456789");
     m_alphaInput->setMaxCharCount(3);
     m_alphaInput->setString(fmt::to_string(m_color.a));
-    m_alphaInput->setCallback([this](const std::string& str) {
-        jasmine::convert::to(str, m_color.a);
-        updateAlpha(false, true, false);
-    });
+    m_alphaInput->setDelegate(this, 3);
     m_alphaInput->setID("alpha-input");
     addChild(m_alphaInput);
 
@@ -147,78 +132,52 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     m_widthInput->setFilter(".0123456789");
     m_widthInput->setMaxCharCount(4);
     m_widthInput->setString(fmt::format("{:.02f}", m_width));
-    m_widthInput->setCallback([this](const std::string& str) {
-        jasmine::convert::to(str, m_width);
-        m_width = std::clamp(m_width, 0.0f, 5.0f);
-        updateWidth(false, true, false);
-    });
+    m_widthInput->setDelegate(this, 4);
     m_widthInput->setID("width-input");
     addChild(m_widthInput);
 
-    m_redSlider = Slider::create(nullptr, nullptr, 0.5f);
-    CCMenuItemExt::assignCallback<SliderThumb>(m_redSlider->m_touchLogic->m_thumb, [this](SliderThumb* thumb) {
-        m_color.r = roundf(thumb->getValue() * 255.0f);
-        updateRed(false, false, true);
-    });
+    m_redSlider = Slider::create(this, menu_selector(SBTColorWidget::sliderChanged), 0.5f);
+    m_redSlider->m_touchLogic->m_thumb->setTag(0);
     m_redSlider->setPosition({ 57.5f, 125.0f });
     m_redSlider->setValue(m_color.r / 255.0f);
     m_redSlider->setBarVisibility(false);
     m_redSlider->setID("red-slider");
     addChild(m_redSlider);
 
-    m_greenSlider = Slider::create(nullptr, nullptr, 0.5f);
-    CCMenuItemExt::assignCallback<SliderThumb>(m_greenSlider->m_touchLogic->m_thumb, [this](SliderThumb* thumb) {
-        m_color.g = roundf(thumb->getValue() * 255.0f);
-        updateGreen(false, false, true);
-    });
+    m_greenSlider = Slider::create(this, menu_selector(SBTColorWidget::sliderChanged), 0.5f);
+    m_greenSlider->m_touchLogic->m_thumb->setTag(1);
     m_greenSlider->setPosition({ 172.5f, 125.0f });
     m_greenSlider->setValue(m_color.g / 255.0f);
     m_greenSlider->setBarVisibility(false);
     m_greenSlider->setID("green-slider");
     addChild(m_greenSlider);
 
-    m_blueSlider = Slider::create(nullptr, nullptr, 0.5f);
-    CCMenuItemExt::assignCallback<SliderThumb>(m_blueSlider->m_touchLogic->m_thumb, [this](SliderThumb* thumb) {
-        m_color.b = roundf(thumb->getValue() * 255.0f);
-        updateBlue(false, false, true);
-    });
+    m_blueSlider = Slider::create(this, menu_selector(SBTColorWidget::sliderChanged), 0.5f);
+    m_blueSlider->m_touchLogic->m_thumb->setTag(2);
     m_blueSlider->setPosition({ 57.5f, 75.0f });
     m_blueSlider->setValue(m_color.b / 255.0f);
     m_blueSlider->setBarVisibility(false);
     m_blueSlider->setID("blue-slider");
     addChild(m_blueSlider);
 
-    m_alphaSlider = Slider::create(nullptr, nullptr, 0.5f);
-    CCMenuItemExt::assignCallback<SliderThumb>(m_alphaSlider->m_touchLogic->m_thumb, [this](SliderThumb* thumb) {
-        m_color.a = roundf(thumb->getValue() * 255.0f);
-        updateAlpha(false, false, true);
-    });
+    m_alphaSlider = Slider::create(this, menu_selector(SBTColorWidget::sliderChanged), 0.5f);
+    m_alphaSlider->m_touchLogic->m_thumb->setTag(3);
     m_alphaSlider->setPosition({ 172.5f, 75.0f });
     m_alphaSlider->setValue(m_color.a / 255.0f);
     m_alphaSlider->setBarVisibility(false);
     m_alphaSlider->setID("alpha-slider");
     addChild(m_alphaSlider);
 
-    m_widthSlider = Slider::create(nullptr, nullptr, 0.8f);
-    CCMenuItemExt::assignCallback<SliderThumb>(m_widthSlider->m_touchLogic->m_thumb, [this](SliderThumb* thumb) {
-        m_width = roundf(thumb->getValue() * 500.0f) / 100.0f;
-        updateWidth(false, false, true);
-    });
+    m_widthSlider = Slider::create(this, menu_selector(SBTColorWidget::sliderChanged), 0.8f);
+    m_widthSlider->m_touchLogic->m_thumb->setTag(4);
     m_widthSlider->setPosition({ 115.0f, 20.0f });
     m_widthSlider->setValue(m_width / 5.0f);
     m_widthSlider->setBarVisibility(false);
     m_widthSlider->setID("width-slider");
     addChild(m_widthSlider);
 
-    loader->queueInMainThread([selfref = WeakRef(this)] {
-        if (auto self = selfref.lock()) {
-            self->m_redSlider->setBarVisibility(false);
-            self->m_greenSlider->setBarVisibility(false);
-            self->m_blueSlider->setBarVisibility(false);
-            self->m_alphaSlider->setBarVisibility(false);
-            self->m_widthSlider->setBarVisibility(false);
-        }
-    });
+    runAction(CCSequence::createWithTwoActions(CCDelayTime::create(0.0f),
+        CCCallFunc::create(this, callfunc_selector(SBTColorWidget::hideSliderBackgrounds))));
 
     m_redNode = CCDrawNode::create();
     m_redNode->setPosition({ 2.0f, 4.0f });
@@ -252,6 +211,82 @@ bool SBTColorWidget::init(const ccColor4B& color, float width, Function<void(con
     updateNodes(false, false, false, false);
 
     return true;
+}
+
+void SBTColorWidget::hideSliderBackgrounds() {
+    m_redSlider->setBarVisibility(false);
+    m_greenSlider->setBarVisibility(false);
+    m_blueSlider->setBarVisibility(false);
+    m_alphaSlider->setBarVisibility(false);
+    m_widthSlider->setBarVisibility(false);
+}
+
+void SBTColorWidget::sliderChanged(CCObject* sender) {
+    auto thumb = static_cast<SliderThumb*>(sender);
+    switch (sender->getTag()) {
+        case 0:
+            m_color.r = roundf(thumb->getValue() * 255.0f);
+            updateRed(false, false, true);
+            break;
+        case 1:
+            m_color.g = roundf(thumb->getValue() * 255.0f);
+            updateGreen(false, false, true);
+            break;
+        case 2:
+            m_color.b = roundf(thumb->getValue() * 255.0f);
+            updateBlue(false, false, true);
+            break;
+        case 3:
+            m_color.a = roundf(thumb->getValue() * 255.0f);
+            updateAlpha(false, false, true);
+            break;
+        case 4:
+            m_width = roundf(thumb->getValue() * 500.0f) / 100.0f;
+            updateWidth(false, false, true);
+            break;
+    }
+}
+
+void SBTColorWidget::textChanged(CCTextInputNode* input) {
+    auto str = input->getString();
+    switch (input->getTag()) {
+        case 0: {
+            if (auto num = numFromString<uint8_t>(str)) {
+                m_color.r = num.unwrap();
+            }
+            updateRed(false, true, false);
+            break;
+        }
+        case 1: {
+            if (auto num = numFromString<uint8_t>(str)) {
+                m_color.g = num.unwrap();
+            }
+            updateGreen(false, true, false);
+            break;
+        }
+        case 2: {
+            if (auto num = numFromString<uint8_t>(str)) {
+                m_color.b = num.unwrap();
+            }
+            updateBlue(false, true, false);
+            break;
+        }
+        case 3: {
+            if (auto num = numFromString<uint8_t>(str)) {
+                m_color.a = num.unwrap();
+            }
+            updateAlpha(false, true, false);
+            break;
+        }
+        case 4: {
+            if (auto num = numFromString<float>(str)) {
+                m_width = num.unwrap();
+            }
+            m_width = std::clamp(m_width, 0.0f, 5.0f);
+            updateWidth(false, true, false);
+            break;
+        }
+    }
 }
 
 void SBTColorWidget::colorValueChanged(ccColor3B color) {

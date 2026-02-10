@@ -1,7 +1,7 @@
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/utils/cocos.hpp>
 
-class SBTColorWidget : public cocos2d::CCLayer, public cocos2d::extension::ColorPickerDelegate {
+class SBTColorWidget : public cocos2d::CCLayer, public TextInputDelegate, public cocos2d::extension::ColorPickerDelegate {
 protected:
     cocos2d::ccColor4B m_color;
     float m_width;
@@ -31,6 +31,9 @@ protected:
     bool m_disableDelegate;
 
     bool init(const cocos2d::ccColor4B&, float, geode::Function<void(const cocos2d::ccColor4B&, float)>);
+    void hideSliderBackgrounds();
+    void sliderChanged(cocos2d::CCObject*);
+    void textChanged(CCTextInputNode*) override;
     void updatePicker();
     void updateRed(bool, bool, bool);
     void updateGreen(bool, bool, bool);

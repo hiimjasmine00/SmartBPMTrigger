@@ -69,28 +69,7 @@ bool SBTOptionsPopup::init(SBTTriggerData* triggerData) {
         barSprite->setColor({ r, g, b });
         barSprite->setOpacity(a);
 
-        auto barButton = CCMenuItemExt::createSpriteExtra(barSprite, [this, i](CCMenuItemSpriteExtra* sender) {
-            m_index = i;
-            m_barSprite->setPositionX(m_mainLayer->convertToNodeSpace(m_barSpriteMenu->convertToWorldSpace(sender->getPosition())).x);
-            m_barSprite->setVisible(true);
-            sender->setVisible(false);
-            m_colorWidget->setValues(m_colors[i], m_widths[i]);
-            m_mainLayer->addChild(m_colorWidget);
-            auto normalImage = static_cast<CCSprite*>(m_closeBtn->getNormalImage());
-            normalImage->setDisplayFrame(SmartBPMTrigger::getSpriteFrameCache()->spriteFrameByName("GJ_backBtn_001.png"));
-            normalImage->setScale(0.74f);
-            m_barSprite->stopAllActions();
-            m_barSprite->runAction(CCMoveTo::create(0.2f, { 90.0f, 150.0f }));
-            m_barSpriteMenu->stopAllActions();
-            m_barSpriteMenu->setEnabled(false);
-            m_barSpriteMenu->runAction(CCSequence::createWithTwoActions(CCFadeOut::create(0.2f), CCHide::create()));
-            m_resetMenu->stopAllActions();
-            m_resetMenu->setVisible(true);
-            m_resetMenu->runAction(CCSequence::createWithTwoActions(CCFadeIn::create(0.2f), CallFuncExt::create([this] {
-                m_resetMenu->setEnabled(true);
-            })));
-            m_colorWidget->prepareActions(true);
-        });
+        auto barButton = CCMenuItemSpriteExtra::create(barSprite, this, menu_selector(SBTOptionsPopup::onBar));
         barSprite->setPositionX(squareRect.size.width / 2.0f);
         barButton->m_scaleMultiplier = 1.0f;
         barButton->setContentSize({ squareRect.size.width, 200.0f });
@@ -115,21 +94,7 @@ bool SBTOptionsPopup::init(SBTTriggerData* triggerData) {
         CCSprite::createWithSpriteFrameName("geode.loader/reset-gold.png"), 32, true, 0.0f, "GJ_button_01.png", 1.25f);
     softResetButtonSprite->setScale(0.6f);
     softResetButtonSprite->setCascadeOpacityEnabled(true);
-    auto softResetButton = CCMenuItemExt::createSpriteExtra(softResetButtonSprite, [this](auto) {
-        auto defaultColor = m_colors[m_index];
-        auto defaultWidth = m_widths[m_index];
-        if (m_colorWidget->getColor() != defaultColor || m_colorWidget->getWidth() != defaultWidth) {
-            createQuickPopup(
-                "Soft Reset",
-                "Are you sure you want to <cy>soft reset</c> this line's <cg>color</c> and <cl>width</c>?",
-                "No",
-                "Yes",
-                [this, defaultColor, defaultWidth](FLAlertLayer*, bool btn2) {
-                    if (btn2) m_colorWidget->setValues(defaultColor, defaultWidth);
-                }
-            );
-        }
-    });
+    auto softResetButton = CCMenuItemSpriteExtra::create(softResetButtonSprite, this, menu_selector(SBTOptionsPopup::onSoftReset));
     softResetButton->setID("soft-reset-button");
     m_resetMenu->addChild(softResetButton);
 
@@ -137,100 +102,19 @@ bool SBTOptionsPopup::init(SBTTriggerData* triggerData) {
         CCSprite::createWithSpriteFrameName("geode.loader/reset-gold.png"), 32, true, 0.0f, "GJ_button_02.png", 1.25f);
     hardResetButtonSprite->setScale(0.6f);
     hardResetButtonSprite->setCascadeOpacityEnabled(true);
-    auto hardResetButton = CCMenuItemExt::createSpriteExtra(hardResetButtonSprite, [this](auto) {
-        auto defaultColor = m_triggerData->m_colors[m_index];
-        auto defaultWidth = m_triggerData->m_widths[m_index];
-        if (m_colorWidget->getColor() != defaultColor || m_colorWidget->getWidth() != defaultWidth) {
-            createQuickPopup(
-                "Hard Reset",
-                "Are you sure you want to <cr>hard reset</c> this line's <cg>color</c> and <cl>width</c>?",
-                "No",
-                "Yes",
-                [this, defaultColor, defaultWidth](FLAlertLayer*, bool btn2) {
-                    if (btn2) m_colorWidget->setValues(defaultColor, defaultWidth);
-                }
-            );
-        }
-    });
+    auto hardResetButton = CCMenuItemSpriteExtra::create(hardResetButtonSprite, this, menu_selector(SBTOptionsPopup::onHardReset));
     hardResetButton->setID("hard-reset-button");
     m_resetMenu->addChild(hardResetButton);
 
     m_resetMenu->setOpacity(0);
     m_resetMenu->updateLayout();
 
-    auto saveButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Save", 0.8f), [this](auto) {
-        if (m_index >= 0) {
-            auto& oldColor = m_colors[m_index];
-            auto& oldWidth = m_widths[m_index];
-            if (m_colorWidget->getColor() != oldColor || m_colorWidget->getWidth() != oldWidth) {
-                auto barSprite = static_cast<CCSprite*>(static_cast<CCMenuItemSprite*>(m_barSpriteMenu->getChildByTag(m_index))->getNormalImage());
-                auto& color = m_colorWidget->getColor();
-                oldColor = color;
-                barSprite->setColor({ color.r, color.g, color.b });
-                barSprite->setOpacity(color.a);
-                auto width = m_colorWidget->getWidth();
-                oldWidth = width;
-                barSprite->setScaleX(width / 5.0f);
-            }
-            closeBar();
-        }
-        else {
-            auto changed = m_triggerData->m_colors != m_colors || m_triggerData->m_widths != m_widths;
-            m_triggerData->m_colors = m_colors;
-            m_triggerData->m_widths = m_widths;
-            if (!m_triggerData->m_changed) m_triggerData->m_changed = changed;
-            Popup::onClose(nullptr);
-        }
-    });
+    auto saveButton = CCMenuItemSpriteExtra::create(ButtonSprite::create("Save", 0.8f), this, menu_selector(SBTOptionsPopup::onSave));
     saveButton->setPosition({ 245.0f, 25.0f });
     saveButton->setID("save-button");
     m_buttonMenu->addChild(saveButton);
 
-    auto resetButton = CCMenuItemExt::createSpriteExtra(ButtonSprite::create("Reset", 0.8f), [this](auto) {
-        auto bpmColor = jasmine::setting::getValue<ccColor4B>("beats-per-minute-color");
-        auto bpbColor = jasmine::setting::getValue<ccColor4B>("beats-per-bar-color");
-        auto bpmWidth = jasmine::setting::getValue<float>("beats-per-minute-width");
-        auto bpbWidth = jasmine::setting::getValue<float>("beats-per-bar-width");
-        if (m_index >= 0) {
-            auto defaultColor = m_index == 0 ? bpmColor : bpbColor;
-            auto defaultWidth = m_index == 0 ? bpmWidth : bpbWidth;
-            if (m_colorWidget->getColor() != defaultColor || m_colorWidget->getWidth() != defaultWidth) {
-                createQuickPopup(
-                    "Reset",
-                    "Are you sure you want to <cr>reset</c> this line's <cg>color</c> and <cl>width</c>?",
-                    "No",
-                    "Yes",
-                    [this, defaultColor, defaultWidth](FLAlertLayer*, bool btn2) {
-                        if (btn2) m_colorWidget->setValues(defaultColor, defaultWidth);
-                    }
-                );
-            }
-        }
-        else {
-            std::vector<ccColor4B> colors;
-            std::vector<float> widths;
-            for (int i = 0; i < m_triggerData->m_beats; i++) {
-                colors.push_back(i == 0 ? bpmColor : bpbColor);
-                widths.push_back(i == 0 ? bpmWidth : bpbWidth);
-            }
-            if (colors != m_triggerData->m_colors || widths != m_triggerData->m_widths) {
-                createQuickPopup(
-                    "Reset",
-                    "Are you sure you want to <cr>reset</c> all lines' <cg>color</c> and <cl>width</c>?",
-                    "No",
-                    "Yes",
-                    [this, colors, widths](FLAlertLayer*, bool btn2) {
-                        if (btn2) {
-                            m_triggerData->m_colors = colors;
-                            m_triggerData->m_widths = widths;
-                            m_triggerData->m_changed = false;
-                            Popup::onClose(nullptr);
-                        }
-                    }
-                );
-            }
-        }
-    });
+    auto resetButton = CCMenuItemSpriteExtra::create(ButtonSprite::create("Reset", 0.8f), this, menu_selector(SBTOptionsPopup::onReset));
     resetButton->setPosition({ 160.0f, 25.0f });
     resetButton->setID("reset-button");
     m_buttonMenu->addChild(resetButton);
@@ -238,31 +122,190 @@ bool SBTOptionsPopup::init(SBTTriggerData* triggerData) {
     return true;
 }
 
+void SBTOptionsPopup::onBar(CCObject* sender) {
+    auto tag = sender->getTag();
+    auto node = static_cast<CCNode*>(sender);
+    m_index = tag;
+    m_barSprite->setPositionX(m_mainLayer->convertToNodeSpace(m_barSpriteMenu->convertToWorldSpace(node->getPosition())).x);
+    m_barSprite->setVisible(true);
+    node->setVisible(false);
+    m_colorWidget->setValues(m_colors[tag], m_widths[tag]);
+    m_mainLayer->addChild(m_colorWidget);
+    auto normalImage = static_cast<CCSprite*>(m_closeBtn->getNormalImage());
+    normalImage->setDisplayFrame(SmartBPMTrigger::getSpriteFrameCache()->spriteFrameByName("GJ_backBtn_001.png"));
+    normalImage->setScale(0.74f);
+    m_barSprite->stopAllActions();
+    m_barSprite->runAction(CCMoveTo::create(0.2f, { 90.0f, 150.0f }));
+    m_barSpriteMenu->stopAllActions();
+    m_barSpriteMenu->setEnabled(false);
+    m_barSpriteMenu->runAction(CCSequence::createWithTwoActions(CCFadeOut::create(0.2f), CCHide::create()));
+    m_resetMenu->stopAllActions();
+    m_resetMenu->setVisible(true);
+    m_resetMenu->runAction(CCSequence::createWithTwoActions(CCFadeIn::create(0.2f), CallFuncExt::create([this] {
+        m_resetMenu->setEnabled(true);
+    })));
+    m_colorWidget->prepareActions(true);
+}
+
+void SBTOptionsPopup::onSoftReset(CCObject* sender) {
+    if (m_index < 0) return;
+    m_queuedColor = m_colors[m_index];
+    m_queuedWidth = m_widths[m_index];
+    if (m_colorWidget->getColor() != m_queuedColor || m_colorWidget->getWidth() != m_queuedWidth) {
+        auto alert = FLAlertLayer::create(
+            this,
+            "Soft Reset",
+            "Are you sure you want to <cy>soft reset</c> this line's <cg>color</c> and <cl>width</c>?",
+            "No",
+            "Yes",
+            350.0f
+        );
+        alert->setTag(2);
+        alert->show();
+    }
+}
+
+void SBTOptionsPopup::onHardReset(CCObject* sender) {
+    if (m_index < 0) return;
+    m_queuedColor = m_triggerData->m_colors[m_index];
+    m_queuedWidth = m_triggerData->m_widths[m_index];
+    if (m_colorWidget->getColor() != m_queuedColor || m_colorWidget->getWidth() != m_queuedWidth) {
+        auto alert = FLAlertLayer::create(
+            this,
+            "Hard Reset",
+            "Are you sure you want to <cr>hard reset</c> this line's <cg>color</c> and <cl>width</c>?",
+            "No",
+            "Yes",
+            350.0f
+        );
+        alert->setTag(2);
+        alert->show();
+    }
+}
+
+void SBTOptionsPopup::onSave(CCObject* sender) {
+    if (m_index >= 0) {
+        auto& oldColor = m_colors[m_index];
+        auto& oldWidth = m_widths[m_index];
+        if (m_colorWidget->getColor() != oldColor || m_colorWidget->getWidth() != oldWidth) {
+            auto barSprite = static_cast<CCSprite*>(static_cast<CCMenuItemSprite*>(m_barSpriteMenu->getChildByTag(m_index))->getNormalImage());
+            auto& color = m_colorWidget->getColor();
+            oldColor = color;
+            barSprite->setColor({ color.r, color.g, color.b });
+            barSprite->setOpacity(color.a);
+            auto width = m_colorWidget->getWidth();
+            oldWidth = width;
+            barSprite->setScaleX(width / 5.0f);
+        }
+        closeBar();
+    }
+    else {
+        auto changed = m_triggerData->m_colors != m_colors || m_triggerData->m_widths != m_widths;
+        m_triggerData->m_colors = m_colors;
+        m_triggerData->m_widths = m_widths;
+        if (!m_triggerData->m_changed) m_triggerData->m_changed = changed;
+        Popup::onClose(nullptr);
+    }
+}
+
+void SBTOptionsPopup::onReset(CCObject* sender) {
+    auto bpmColor = jasmine::setting::getValue<ccColor4B>("beats-per-minute-color");
+    auto bpbColor = jasmine::setting::getValue<ccColor4B>("beats-per-bar-color");
+    auto bpmWidth = jasmine::setting::getValue<float>("beats-per-minute-width");
+    auto bpbWidth = jasmine::setting::getValue<float>("beats-per-bar-width");
+    if (m_index >= 0) {
+        m_queuedColor = m_index == 0 ? bpmColor : bpbColor;
+        m_queuedWidth = m_index == 0 ? bpmWidth : bpbWidth;
+        if (m_colorWidget->getColor() != m_queuedColor || m_colorWidget->getWidth() != m_queuedWidth) {
+            auto alert = FLAlertLayer::create(
+                this,
+                "Reset",
+                "Are you sure you want to <cr>reset</c> this line's <cg>color</c> and <cl>width</c>?",
+                "No",
+                "Yes",
+                350.0f
+            );
+            alert->setTag(2);
+            alert->show();
+        }
+    }
+    else {
+        m_queuedColors.reserve(m_triggerData->m_beats);
+        m_queuedWidths.reserve(m_triggerData->m_beats);
+        for (int i = 0; i < m_triggerData->m_beats; i++) {
+            m_queuedColors.push_back(i == 0 ? bpmColor : bpbColor);
+            m_queuedWidths.push_back(i == 0 ? bpmWidth : bpbWidth);
+        }
+        if (m_queuedColors != m_triggerData->m_colors || m_queuedWidths != m_triggerData->m_widths) {
+            auto alert = FLAlertLayer::create(
+                this,
+                "Reset",
+                "Are you sure you want to <cr>reset</c> all lines' <cg>color</c> and <cl>width</c>?",
+                "No",
+                "Yes",
+                350.0f
+            );
+            alert->setTag(3);
+            alert->show();
+        }
+        else {
+            m_queuedColors.clear();
+            m_queuedWidths.clear();
+        }
+    }
+}
+
 void SBTOptionsPopup::onClose(CCObject* sender) {
     if (m_index >= 0) {
         if (m_colorWidget->getColor() != m_colors[m_index] || m_colorWidget->getWidth() != m_widths[m_index]) {
-            createQuickPopup(
+            auto alert = FLAlertLayer::create(
+                this,
                 "Close Bar Editor",
                 "You have <cy>unsaved changes</c>. Are you sure you want to <cr>close without saving</c>?",
                 "No",
                 "Yes",
-                [this](FLAlertLayer*, bool btn2) {
-                    if (btn2) closeBar();
-                }
+                350.0f
             );
+            alert->setTag(0);
+            alert->show();
         }
         else closeBar();
     }
-    else if (m_triggerData->m_colors != m_colors || m_triggerData->m_widths != m_widths) createQuickPopup(
-        "Close Popup",
-        "You have <cy>unsaved changes</c>. Are you sure you want to <cr>close without saving</c>?",
-        "No",
-        "Yes",
-        [this](FLAlertLayer*, bool btn2) {
-            if (btn2) Popup::onClose(nullptr);
-        }
-    );
+    else if (m_triggerData->m_colors != m_colors || m_triggerData->m_widths != m_widths) {
+        auto alert = FLAlertLayer::create(
+            this,
+            "Close Popup",
+            "You have <cy>unsaved changes</c>. Are you sure you want to <cr>close without saving</c>?",
+            "No",
+            "Yes",
+            350.0f
+        );
+        alert->setTag(1);
+        alert->show();
+    }
     else Popup::onClose(nullptr);
+}
+
+void SBTOptionsPopup::FLAlert_Clicked(FLAlertLayer* layer, bool btn2) {
+    if (!btn2) return;
+
+    switch (layer->getTag()) {
+        case 0:
+            closeBar();
+            break;
+        case 1:
+            Popup::onClose(nullptr);
+            break;
+        case 2:
+            m_colorWidget->setValues(m_queuedColor, m_queuedWidth);
+            break;
+        case 3:
+            m_triggerData->m_colors = std::move(m_queuedColors);
+            m_triggerData->m_widths = std::move(m_queuedWidths);
+            m_triggerData->m_changed = false;
+            Popup::onClose(nullptr);
+            break;
+    }
 }
 
 void SBTOptionsPopup::closeBar() {

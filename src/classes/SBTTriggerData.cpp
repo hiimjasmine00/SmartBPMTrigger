@@ -1,7 +1,6 @@
 #include "SBTTriggerData.hpp"
 #include <Geode/utils/string.hpp>
 #include <Geode/utils/StringBuffer.hpp>
-#include <jasmine/convert.hpp>
 #include <jasmine/setting.hpp>
 
 using namespace geode::prelude;
@@ -30,7 +29,7 @@ SBTTriggerData* SBTTriggerData::create(std::string_view str, int beats) {
                     auto colors = string::splitView(value, "~");
                     for (int i = 0; i < beats && i < colors.size(); i++) {
                         auto& color = colors[i];
-                        auto hexColor = jasmine::convert::getOr(color, 0u);
+                        auto hexColor = numFromString<uint32_t>(color).unwrapOrDefault();
                         ret->m_colors.emplace_back((hexColor >> 24) & 255, (hexColor >> 16) & 255, (hexColor >> 8) & 255, hexColor & 255);
                     }
                     break;
@@ -39,19 +38,19 @@ SBTTriggerData* SBTTriggerData::create(std::string_view str, int beats) {
                     auto widths = string::splitView(value, "~");
                     for (int i = 0; i < beats && i < widths.size(); i++) {
                         auto& width = widths[i];
-                        auto widthValue = jasmine::convert::getOr(width, 0.0f);
+                        auto widthValue = numFromString<float>(width).unwrapOrDefault();
                         ret->m_widths.push_back(widthValue);
                     }
                     break;
                 }
                 case '3': {
-                    auto disabledValue = jasmine::convert::getOr(value, 0u);
+                    auto disabledValue = numFromString<uint32_t>(value).unwrapOrDefault();
                     ret->m_disabled = disabledValue > 0;
                     break;
                 }
                 case '4': {
                     hasChanged = true;
-                    auto changedValue = jasmine::convert::getOr(value, 0u);
+                    auto changedValue = numFromString<uint32_t>(value).unwrapOrDefault();
                     ret->m_changed = changedValue > 0;
                     break;
                 }
