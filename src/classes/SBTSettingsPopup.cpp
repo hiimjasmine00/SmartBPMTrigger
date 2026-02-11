@@ -171,7 +171,7 @@ bool SBTSettingsPopup::init(LevelEditorLayer* layer) {
 
     m_spawnBPMSetting = jasmine::setting::get<double>("spawn-bpm");
 
-    m_loopBPMSlider = Slider::create(nullptr, nullptr, 0.8f);
+    m_loopBPMSlider = Slider::create(this, menu_selector(SBTSettingsPopup::sliderChanged), 0.8f);
     m_loopBPMSlider->setPosition({ 200.0f, 60.0f });
     m_loopBPMSlider->setValue(m_spawnBPMSetting->getValue() / 1000.0);
     m_loopBPMSlider->setID("loop-bpm-slider");
