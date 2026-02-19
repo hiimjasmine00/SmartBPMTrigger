@@ -1,4 +1,7 @@
 # Smart BPM Trigger Changelog
+## v1.2.3 (2026-02-18)
+- Fixed a bug where the "Snap Object" and "Create Loop" buttons in the settings popup would crash the game (Reported by [fracturedgalaxy](user:17217338))
+
 ## v1.2.2 (2026-02-14)
 - Ported to Geometry Dash v2.208 / Geode SDK v5.0.0
 

@@ -32,6 +32,8 @@ bool SBTSettingsPopup::init(LevelEditorLayer* layer) {
     m_closeBtn->setID("close-button");
     m_noElasticity = true;
 
+    m_layer = layer;
+
     m_colorWidget = SBTColorWidget::create({ 0, 0, 0, 0 }, 0.0f, [this](const ccColor4B& color, float width) {
         m_barSprite->setColor({ color.r, color.g, color.b });
         m_barSprite->setOpacity(color.a);
