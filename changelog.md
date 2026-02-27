@@ -1,4 +1,7 @@
 # Smart BPM Trigger Changelog
+## v1.2.4 (2026-02-27)
+- Fixed setting change events
+
 ## v1.2.3 (2026-02-18)
 - Fixed a bug where the "Snap Object" and "Create Loop" buttons in the settings popup would crash the game (Reported by [fracturedgalaxy](user:17217338))
 
